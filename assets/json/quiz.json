@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "category": "java_quiz",
+    "question": "Which of these is NOT a valid access modifier in Java?",
+    "options": ["public", "private", "protected", "internal"],
+    "correctOptionIndex": 3,
+    "explanation": "'internal' is used in Kotlin and Swift. In Java, the four access levels are: public, private, protected, and package-private (default, no keyword)."
+  },
+  {
+    "id": 2,
+    "category": "java_quiz",
+    "question": "What is the default value of a local variable in Java?",
+    "options": ["null", "0", "false", "None of the above (compilation error)"],
+    "correctOptionIndex": 3,
+    "explanation": "Local variables in Java do not get any default values. They must be explicitly initialized before use, otherwise, the code will fail to compile."
+  },
+  {
+    "id": 3,
+    "category": "collections_quiz",
+    "question": "Which of the following collections guarantees that elements are kept in a sorted order?",
+    "options": ["HashSet", "ArrayList", "TreeSet", "LinkedHashSet"],
+    "correctOptionIndex": 2,
+    "explanation": "TreeSet stores elements in a self-balancing binary search tree (Red-Black tree) which automatically maintains elements in their natural sorted order or sorted by a custom Comparator."
+  },
+  {
+    "id": 4,
+    "category": "collections_quiz",
+    "question": "What is the initial default capacity of an ArrayList in Java?",
+    "options": ["0", "10", "16", "20"],
+    "correctOptionIndex": 1,
+    "explanation": "When an ArrayList is instantiated without specifying size, it starts with an empty buffer which expands to a default capacity of 10 when the first element is added."
+  },
+  {
+    "id": 5,
+    "category": "streams_quiz",
+    "question": "Which stream operation is considered a terminal operation?",
+    "options": ["filter", "map", "reduce", "peek"],
+    "correctOptionIndex": 2,
+    "explanation": "'reduce' is a terminal operation that aggregates the elements of a stream into a single summary value. map, filter, and peek are intermediate operations that return another stream."
+  },
+  {
+    "id": 6,
+    "category": "spring_quiz",
+    "question": "Which annotation is used to tell Spring Boot to scan and configure database connectivity automatically?",
+    "options": ["@SpringBootApplication", "@EnableAutoConfiguration", "@Autowired", "@EnableWebMvc"],
+    "correctOptionIndex": 1,
+    "explanation": "@EnableAutoConfiguration instructs Spring Boot to look at classpaths and configure beans matching dependencies (like DataSource). @SpringBootApplication includes this annotation internally."
+  },
+  {
+    "id": 7,
+    "category": "sql_quiz",
+    "question": "Which SQL statement is used to remove all rows from a table quickly without logging individual row deletions?",
+    "options": ["DELETE", "TRUNCATE", "DROP", "REMOVE"],
+    "correctOptionIndex": 1,
+    "explanation": "TRUNCATE is a DDL operation that empties a table completely by deallocating the data pages, making it much faster than DELETE (a DML operation that scans and logs each row)."
+  }
+]

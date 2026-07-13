@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "category": "java_core",
+    "title": "Java Object-Oriented Principles (OOP)",
+    "description": "Object-Oriented Programming (OOP) is a programming paradigm based on the concept of 'objects', which contain data (attributes) and code (methods). The four core pillars of OOP are Inheritance, Polymorphism, Encapsulation, and Abstraction.",
+    "examples": "### 1. Inheritance\nAllows a subclass to inherit attributes and methods of a parent class. Use `extends` keyword.\n```java\nclass Animal { void eat() { } }\nclass Dog extends Animal { }\n```\n\n### 2. Polymorphism\nAbility of an object to take multiple forms. Can be method overloading (compile-time) or method overriding (runtime).\n```java\nclass Printer {\n  void print(String s) { } \n  void print(int i) { } // Overloading\n}\n```\n\n### 3. Encapsulation\nWrapping variables and methods in a single unit and restricting direct access using private fields and public getters/setters.\n\n### 4. Abstraction\nHiding complexity and showing only essential features using interfaces or abstract classes.",
+    "summary": "OOP simplifies software development and maintenance. Abstraction hides complexity, Encapsulation secures data, Inheritance facilitates reusability, and Polymorphism handles multiple forms."
+  },
+  {
+    "id": 2,
+    "category": "collections",
+    "title": "Java Collections Framework",
+    "description": "The Collections Framework is a unified architecture for representing and manipulating collections of objects. It contains Interfaces (List, Set, Queue, Map) and Classes (ArrayList, HashSet, PriorityQueue, HashMap).",
+    "examples": "### List vs Set vs Map\n*   **List**: Ordered collection that allows duplicates (e.g. `ArrayList`, `LinkedList`).\n*   **Set**: Unordered collection that does not allow duplicates (e.g. `HashSet`, `TreeSet`).\n*   **Map**: Key-value pairs with unique keys (e.g. `HashMap`, `TreeMap`).\n\n```java\n// Using Stream API to filter collections\nList<String> items = Arrays.asList(\"Apple\", \"Banana\", \"Cherry\");\nitems.stream()\n     .filter(item -> item.startsWith(\"B\"))\n     .forEach(System.out::println);\n```",
+    "summary": "Choose ArrayList for index-based search, LinkedList for frequent inserts/deletes, HashSet to keep unique elements, and HashMap for fast key-value lookups."
+  },
+  {
+    "id": 3,
+    "category": "jvm_internals",
+    "title": "JVM Memory & Garbage Collection",
+    "description": "The Java Virtual Machine (JVM) manages memory dynamically. JVM memory is divided into Heap, Stack, Method Area, PC Register, and Native Method Stack. Garbage Collection (GC) automatically reclaims heap memory by destroying unreachable objects.",
+    "examples": "### JVM Generations\n1.  **Young Generation**: Where newly created objects are allocated. Divided into Eden space, survivor space S0, and survivor space S1. Minor GC runs here.\n2.  **Old (Tenured) Generation**: Long-lived objects are moved here after surviving Young Gen thresholds. Major GC runs here.\n3.  **Metaspace**: Stores class metadata (replaces PermGen in Java 8).\n\n```java\n// Suggesting JVM to run Garbage Collector (no guarantee)\nSystem.gc();\n```",
+    "summary": "JVM isolates threads in stack memory while keeping objects in heap. Garbage collection cleans Eden and moves surviving objects to survivor spaces and eventually to Old Generation."
+  },
+  {
+    "id": 4,
+    "category": "spring_framework",
+    "title": "Spring Boot Basics & Bean Lifecycle",
+    "description": "Spring Boot is an opinionated framework built on top of the Spring Framework, designed to simplify web app configuration. At its core is the IoC Container, which manages Spring Beans. The bean lifecycle includes instantiation, dependency injection, custom initialization, and destruction.",
+    "examples": "### Bean Lifecycle Annotations\n*   `@PostConstruct`: Method called immediately after dependency injection.\n*   `@PreDestroy`: Method called right before the bean is removed from the context.\n\n```java\n@Component\npublic class DatabaseConnector {\n    @PostConstruct\n    public void init() {\n        System.out.println(\"Connection established!\");\n    }\n    \n    @PreDestroy\n    public void cleanup() {\n        System.out.println(\"Connection closed safely.\");\n    }\n}\n```",
+    "summary": "Spring Boot simplifies startup configuration via auto-configuration and starter dependencies. IoC manages beans and their dependencies automatically."
+  },
+  {
+    "id": 5,
+    "category": "microservices",
+    "title": "Microservices Architecture & REST API",
+    "description": "A Microservices architecture decomposes an application into small, independent, deployable services, each running in its own process and communicating via lightweight protocols (usually REST HTTP or gRPC).",
+    "examples": "### Core REST Best Practices\n*   Use HTTP methods semantically: `GET` (retrieve), `POST` (create), `PUT` (full update), `PATCH` (partial update), `DELETE` (remove).\n*   Use plural nouns for resource paths: `/api/v1/users` instead of `/api/v1/getUser`.\n*   Use standard status codes: `200 OK`, `201 Created`, `400 Bad Request`, `401 Unauthorized`, `404 Not Found`, `500 Server Error`.\n\n```java\n@RestController\n@RequestMapping(\"/api/v1/products\")\npublic class ProductController {\n    @GetMapping(\"/{id}\")\n    public ResponseEntity<Product> getProduct(@PathVariable Long id) {\n        return ResponseEntity.ok(productService.findById(id));\n    }\n}\n```",
+    "summary": "Microservices offer high scalability and tech stack flexibility but introduce network complexity and data consistency issues, which are managed using API Gateways and Saga patterns."
+  }
+]

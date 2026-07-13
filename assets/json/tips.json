@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "title": "String Pool Optimization",
+    "content": "String literals in Java are stored in a special memory region called the 'String Constant Pool' (located inside the heap). This allows JVM to reuse matching literals and conserve memory."
+  },
+  {
+    "id": 2,
+    "title": "Garbage Collection Hint",
+    "content": "Running System.gc() does not guarantee JVM will run GC immediately. It is merely a suggestion to the JVM that garbage collection may be helpful."
+  },
+  {
+    "id": 3,
+    "title": "Double vs BigDecimal",
+    "content": "Never use float or double for precise values like currency or financial calculations. Always use BigDecimal to avoid rounding errors caused by binary representation of decimals."
+  },
+  {
+    "id": 4,
+    "title": "Java 8 Optional",
+    "content": "Optional should be used primarily as a return type for methods that may not return a value. Avoid using Optional as field types or method arguments as it is not serializable."
+  },
+  {
+    "id": 5,
+    "title": "Immutable Collections",
+    "content": "Java 9 introduced List.of(), Set.of(), and Map.of() factory methods. These return unmodifiable collections which are highly memory efficient and thread-safe."
+  }
+]

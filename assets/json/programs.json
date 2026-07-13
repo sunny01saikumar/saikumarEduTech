@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "category": "strings",
+    "title": "Reverse a String in Java",
+    "problemStatement": "Write a Java program to reverse a given string without using any built-in reverse functions.",
+    "explanation": "To reverse a string, you can convert it to a character array and swap characters from both ends (using two pointers: start and end) moving towards the center. Alternatively, you can iterate backward through the string and append each character to a StringBuilder.",
+    "algorithm": "1. Initialize two pointers: 'left' at index 0 and 'right' at length - 1.\n2. Convert string to character array.\n3. Loop while left < right.\n4. Swap character at index left with character at index right.\n5. Increment left pointer and decrement right pointer.\n6. Convert character array back to string and return.",
+    "timeComplexity": "O(N)",
+    "spaceComplexity": "O(N) for character array",
+    "code": "public class StringReversal {\n    public static String reverse(String input) {\n        if (input == null) return null;\n        char[] chars = input.toCharArray();\n        int left = 0;\n        int right = chars.length - 1;\n        while (left < right) {\n            char temp = chars[left];\n            chars[left] = chars[right];\n            chars[right] = temp;\n            left++;\n            right--;\n        }\n        return new String(chars);\n    }\n\n    public static void main(String[] args) {\n        String original = \"JavaMaster\";\n        String reversed = reverse(original);\n        System.out.println(\"Original: \" + original);\n        System.out.println(\"Reversed: \" + reversed);\n    }\n}",
+    "output": "Original: JavaMaster\nReversed: retsaMavaJ"
+  },
+  {
+    "id": 2,
+    "category": "arrays",
+    "title": "Two Sum Challenge",
+    "problemStatement": "Given an array of integers 'nums' and an integer 'target', return indices of the two numbers such that they add up to target.",
+    "explanation": "You can solve this efficiently in one pass using a HashMap. For each number, calculate its complement (target - current_value). If the complement is already in the map, return the current index and the complement's index. Otherwise, store the current value and index in the map.",
+    "algorithm": "1. Create a HashMap of <Integer, Integer> to store values and their indices.\n2. Iterate through the array with pointer 'i'.\n3. Calculate complement = target - nums[i].\n4. If map containsKey(complement), return new int[]{ map.get(complement), i }.\n5. Else, put(nums[i], i) into the map.\n6. If loop completes, return empty array.",
+    "timeComplexity": "O(N)",
+    "spaceComplexity": "O(N) for storing elements in HashMap",
+    "code": "import java.util.HashMap;\nimport java.util.Arrays;\n\npublic class TwoSum {\n    public static int[] findTwoSum(int[] nums, int target) {\n        HashMap<Integer, Integer> map = new HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            int complement = target - nums[i];\n            if (map.containsKey(complement)) {\n                return new int[] { map.get(complement), i };\n            }\n            map.put(nums[i], i);\n        }\n        return new int[] {}; // No solution found\n    }\n\n    public static void main(String[] args) {\n        int[] numbers = {2, 7, 11, 15};\n        int target = 9;\n        int[] result = findTwoSum(numbers, target);\n        System.out.println(\"Indices: \" + Arrays.toString(result));\n    }\n}",
+    "output": "Indices: [0, 1]"
+  },
+  {
+    "id": 3,
+    "category": "recursion",
+    "title": "N-th Fibonacci Number (Recursive and Memoized)",
+    "problemStatement": "Calculate the N-th Fibonacci number using recursion, and optimize it using memoization.",
+    "explanation": "A standard recursive implementation has a time complexity of O(2^N) due to duplicate calculations. Memoization resolves this by storing previously calculated Fibonacci values in an array/map and checking this cache before making recursive calls.",
+    "algorithm": "1. Create a memoization array of size n+1 initialized with -1.\n2. Base cases: if n is 0 or 1, return n.\n3. In recursive function, check if memo[n] != -1. If yes, return memo[n].\n4. Calculate fib(n) = fib(n-1) + fib(n-2) and store it in memo[n].\n5. Return memo[n].",
+    "timeComplexity": "O(N)",
+    "spaceComplexity": "O(N) for recursion stack and cache",
+    "code": "import java.util.Arrays;\n\npublic class Fibonacci {\n    private static int[] memo;\n\n    public static int getFibonacci(int n) {\n        memo = new int[n + 1];\n        Arrays.fill(memo, -1);\n        return fib(n);\n    }\n\n    private static int fib(int n) {\n        if (n <= 1) return n;\n        if (memo[n] != -1) return memo[n];\n        \n        memo[n] = fib(n - 1) + fib(n - 2);\n        return memo[n];\n    }\n\n    public static void main(String[] args) {\n        int n = 10;\n        System.out.println(\"Fibonacci of \" + n + \" is: \" + getFibonacci(n));\n    }\n}",
+    "output": "Fibonacci of 10 is: 55"
+  },
+  {
+    "id": 4,
+    "category": "sorting_searching",
+    "title": "Binary Search Algorithm",
+    "problemStatement": "Implement Binary Search on a sorted array of integers to locate a target element.",
+    "explanation": "Binary search is a divide-and-conquer algorithm. It continuously halves the search space by checking the middle element. If the target is equal to middle, search is done. If target is less, search left half. If target is greater, search right half.",
+    "algorithm": "1. Set low = 0 and high = array.length - 1.\n2. While low <= high:\n   a. Calculate mid = low + (high - low) / 2.\n   b. If array[mid] == target, return mid.\n   c. If array[mid] < target, set low = mid + 1.\n   d. If array[mid] > target, set high = mid - 1.\n3. If target not found, return -1.",
+    "timeComplexity": "O(log N)",
+    "spaceComplexity": "O(1)",
+    "code": "public class BinarySearch {\n    public static int search(int[] arr, int target) {\n        int low = 0;\n        int high = arr.length - 1;\n        while (low <= high) {\n            int mid = low + (high - low) / 2;\n            if (arr[mid] == target) {\n                return mid;\n            }\n            if (arr[mid] < target) {\n                low = mid + 1;\n            } else {\n                high = mid - 1;\n            }\n        }\n        return -1; // Not found\n    }\n\n    public static void main(String[] args) {\n        int[] sortedArray = {2, 5, 8, 12, 16, 23, 38, 56, 72};\n        int target = 23;\n        int index = search(sortedArray, target);\n        System.out.println(\"Element \" + target + \" found at index: \" + index);\n    }\n}",
+    "output": "Element 23 found at index: 5"
+  },
+  {
+    "id": 5,
+    "category": "data_structures",
+    "title": "Detect Loop in a Linked List",
+    "problemStatement": "Implement Floyd's Cycle Finding algorithm to detect a loop (cycle) in a Singly Linked List.",
+    "explanation": "Use two pointers, a slow pointer and a fast pointer. The slow pointer moves one step at a time, while the fast pointer moves two steps. If a cycle exists, the fast pointer will eventually catch up and meet the slow pointer.",
+    "algorithm": "1. Initialize two pointers: slow = head, fast = head.\n2. Loop while fast != null and fast.next != null.\n3. Move slow = slow.next.\n4. Move fast = fast.next.next.\n5. If slow == fast, a cycle is detected, return true.\n6. If loop exits, there is no cycle, return false.",
+    "timeComplexity": "O(N)",
+    "spaceComplexity": "O(1)",
+    "code": "public class LinkedListCycle {\n    static class Node {\n        int data;\n        Node next;\n        Node(int val) {\n            this.data = val;\n            this.next = null;\n        }\n    }\n\n    public static boolean hasCycle(Node head) {\n        if (head == null) return false;\n        Node slow = head;\n        Node fast = head;\n        while (fast != null && fast.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n            if (slow == fast) {\n                return true; // Loop detected\n            }\n        }\n        return false;\n    }\n\n    public static void main(String[] args) {\n        Node head = new Node(1);\n        head.next = new Node(2);\n        Node loopNode = new Node(3);\n        head.next.next = loopNode;\n        loopNode.next = new Node(4);\n        loopNode.next.next = loopNode; // Creates a cycle pointing back to node 3\n\n        System.out.println(\"Has Cycle: \" + hasCycle(head));\n    }\n}",
+    "output": "Has Cycle: true"
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "questions": [
+    { "id": "java_basics", "name": "Java Basics", "icon": "code", "count": 0 },
+    { "id": "oop", "name": "Object-Oriented Programming", "icon": "corporate_fare", "count": 0 },
+    { "id": "exception_handling", "name": "Exception Handling", "icon": "error_outline", "count": 0 },
+    { "id": "collections", "name": "Collections Framework", "icon": "view_list", "count": 0 },
+    { "id": "java8_streams", "name": "Java 8 & Streams", "icon": "waves", "count": 0 },
+    { "id": "multithreading", "name": "Multithreading & Concurrency", "icon": "alt_route", "count": 0 },
+    { "id": "jvm_memory", "name": "JVM & Memory Management", "icon": "memory", "count": 0 },
+    { "id": "strings_arrays", "name": "Strings & Arrays", "icon": "text_fields", "count": 0 },
+    { "id": "spring_boot_mvc", "name": "Spring Boot & MVC", "icon": "settings_input_component", "count": 0 },
+    { "id": "hibernate_jpa", "name": "Hibernate & JPA", "icon": "storage", "count": 0 },
+    { "id": "rest_microservices", "name": "REST API & Microservices", "icon": "cloud", "count": 0 },
+    { "id": "sql_databases", "name": "SQL & Databases", "icon": "table_chart", "count": 0 },
+    { "id": "design_patterns", "name": "Design Patterns", "icon": "architecture", "count": 0 },
+    { "id": "system_design", "name": "System Design Basics", "icon": "lan", "count": 0 }
+  ],
+  "programs": [
+    { "id": "arrays", "name": "Arrays", "icon": "data_array" },
+    { "id": "strings", "name": "Strings", "icon": "text_snippet" },
+    { "id": "numbers", "name": "Number Programs", "icon": "pin" },
+    { "id": "patterns", "name": "Pattern Programs", "icon": "grid_on" },
+    { "id": "recursion", "name": "Recursion", "icon": "loop" },
+    { "id": "sorting_searching", "name": "Sorting & Searching", "icon": "sort" },
+    { "id": "data_structures", "name": "Data Structures (List, Stack, Queue)", "icon": "hive" },
+    { "id": "advanced_ds", "name": "Advanced DS (Tree, Graph)", "icon": "account_tree" },
+    { "id": "dynamic_programming", "name": "Dynamic Programming", "icon": "extension" }
+  ],
+  "notes": [
+    { "id": "java_core", "name": "Java Core", "icon": "school" },
+    { "id": "collections", "name": "Collections Deep Dive", "icon": "list_alt" },
+    { "id": "jvm_internals", "name": "JVM & Garbage Collection", "icon": "developer_board" },
+    { "id": "spring_framework", "name": "Spring Boot & JPA", "icon": "bolt" },
+    { "id": "microservices", "name": "Microservices & REST", "icon": "hub" },
+    { "id": "design_patterns", "name": "Design Patterns", "icon": "category" },
+    { "id": "sql", "name": "SQL Optimization", "icon": "database" }
+  ],
+  "quiz": [
+    { "id": "java_quiz", "name": "Java Core Quiz", "icon": "quiz" },
+    { "id": "spring_quiz", "name": "Spring Boot Quiz", "icon": "integration_instructions" },
+    { "id": "sql_quiz", "name": "SQL & DB Quiz", "icon": "dns" },
+    { "id": "collections_quiz", "name": "Collections Quiz", "icon": "format_list_bulleted" },
+    { "id": "streams_quiz", "name": "Streams & Lambda Quiz", "icon": "bubble_chart" }
+  ]
+}
