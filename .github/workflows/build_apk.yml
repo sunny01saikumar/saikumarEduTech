@@ -29,17 +29,8 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Debug APK
-        run: flutter build apk --debug
-
       - name: Build Release APK (Unsigned)
-        run: flutter build apk --release --no-codesign
-
-      - name: Upload Debug APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: java-master-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+        run: flutter build apk --release --no-codesign --verbose
 
       - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
