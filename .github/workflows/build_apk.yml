@@ -29,8 +29,8 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Release APK (Unsigned)
-        run: flutter build apk --release --no-codesign --verbose
+      - name: Build Release APK
+        run: flutter build apk --release --verbose
 
       - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
