@@ -44,5 +44,5 @@ flutter {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    // Kotlin dependencies are resolved automatically by org.jetbrains.kotlin.android
 }
