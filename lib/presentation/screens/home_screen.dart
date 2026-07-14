@@ -319,7 +319,7 @@ class HomeScreen extends ConsumerWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                             side: BorderSide(
-                              color: theme.outlineDeco(theme),
+                              color: theme.outlineDeco(),
                             ),
                           ),
                           child: ListTile(
@@ -388,7 +388,7 @@ class HomeScreen extends ConsumerWidget {
       color: theme.colorScheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: theme.outlineDeco(theme)),
+        side: BorderSide(color: theme.outlineDeco()),
       ),
       child: InkWell(
         onTap: onTap,
@@ -493,7 +493,7 @@ class HomeScreen extends ConsumerWidget {
 }
 
 extension ColorExtension on ThemeData {
-  Color outlineDeco(ThemeData theme) {
-    return theme.colorScheme.outlineVariant.withOpacity(0.4);
+  Color outlineDeco() {
+    return colorScheme.outlineVariant.withOpacity(0.4);
   }
 }
