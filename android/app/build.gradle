@@ -40,5 +40,5 @@ flutter {
 }
 
 dependencies {
-    // Resolved automatically by Kotlin and Flutter plugins
+    // Standard dependencies automatically resolved
 }
