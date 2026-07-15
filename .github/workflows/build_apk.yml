@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - master
-  workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
@@ -33,9 +33,24 @@ jobs:
         run: flutter pub run flutter_launcher_icons
 
       - name: Build Release APK
-        run: flutter build apk --release --verbose
+        run: flutter build apk --release --verbose > build.log 2>&1
+
+      - name: Print logs on failure
+        if: failure()
+        run: |
+          echo "=================== BUILD FAILED: LAST 200 LINES OF LOG ==================="
+          tail -n 200 build.log
+          echo "=========================================================================="
+
+      - name: Upload Build Log on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-failure
+          path: build.log
 
       - name: Upload Release APK Artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: java-master-release-apk
