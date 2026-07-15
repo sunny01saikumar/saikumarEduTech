@@ -26,15 +26,6 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Delete Legacy Android Directory
-        run: rm -rf android
-
-      - name: Regenerate Android Template Project
-        run: flutter create --platforms=android .
-
-      - name: Apply Custom Android Configurations
-        run: python scripts/configure_android.py
-
       - name: Install dependencies
         run: flutter pub get
 
