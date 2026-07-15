@@ -38,8 +38,10 @@ jobs:
       - name: Print logs on failure
         if: failure()
         run: |
-          echo "=================== BUILD FAILED: LAST 200 LINES OF LOG ==================="
-          tail -n 200 build.log
+          echo "=================== SEARCHING FOR KOTLIN COMPILER ERRORS ==================="
+          grep -i -C 3 -E "e: |error:" build.log || true
+          echo "=================== LAST 500 LINES OF LOG ==================="
+          tail -n 500 build.log
           echo "=========================================================================="
 
       - name: Upload Build Log on Failure
