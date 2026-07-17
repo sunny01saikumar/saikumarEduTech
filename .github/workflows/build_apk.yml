@@ -10,10 +10,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -35,21 +39,15 @@ jobs:
       - name: Build Release APK
         run: flutter build apk --release --verbose > build.log 2>&1
 
-      - name: Print logs on failure
+      - name: Push Build Log on Failure
         if: failure()
         run: |
-          echo "=================== SEARCHING FOR KOTLIN COMPILER ERRORS ==================="
-          grep -i -C 3 -E "e: |error:" build.log || true
-          echo "=================== LAST 500 LINES OF LOG ==================="
-          tail -n 500 build.log
-          echo "=========================================================================="
-
-      - name: Upload Build Log on Failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log-failure
-          path: build.log
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b build-logs
+          git add -f build.log
+          git commit -m "Upload build log on failure [skip ci]"
+          git push origin build-logs --force
 
       - name: Upload Release APK Artifact
         if: success()
