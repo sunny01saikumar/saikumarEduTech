@@ -15,3 +15,7 @@
 -keep class io.flutter.embedding.** { *; }
 -keep class io.flutter.plugins.** { *; }
 -keep class org.chromium.** { *; }
+
+# Prevent warnings/failures due to missing Google Play Core dependencies in Flutter engine
+-dontwarn com.google.android.play.core.**
+
