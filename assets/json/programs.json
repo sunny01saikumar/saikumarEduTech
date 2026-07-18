@@ -58,5 +58,113 @@
     "spaceComplexity": "O(1)",
     "code": "public class LinkedListCycle {\n    static class Node {\n        int data;\n        Node next;\n        Node(int val) {\n            this.data = val;\n            this.next = null;\n        }\n    }\n\n    public static boolean hasCycle(Node head) {\n        if (head == null) return false;\n        Node slow = head;\n        Node fast = head;\n        while (fast != null && fast.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n            if (slow == fast) {\n                return true; // Loop detected\n            }\n        }\n        return false;\n    }\n\n    public static void main(String[] args) {\n        Node head = new Node(1);\n        head.next = new Node(2);\n        Node loopNode = new Node(3);\n        head.next.next = loopNode;\n        loopNode.next = new Node(4);\n        loopNode.next.next = loopNode; // Creates a cycle pointing back to node 3\n\n        System.out.println(\"Has Cycle: \" + hasCycle(head));\n    }\n}",
     "output": "Has Cycle: true"
+  },
+  {
+    "category": "numbers",
+    "title": "Reverse an Integer Number",
+    "problemStatement": "Write a Java program to reverse a given integer number (e.g. input 123 returns output 321).",
+    "explanation": "To reverse an integer, you can iteratively extract its last digit using the modulo operator (%) and append it to a running reversed sum (multiply previous reverse by 10 and add the digit). Then, divide the number by 10 to move to the next digit.",
+    "algorithm": "1. Initialize rev = 0.\n2. While num > 0:\n   a. Extract last digit: rem = num % 10.\n   b. Build reverse: rev = (rev * 10) + rem.\n   c. Truncate last digit: num = num / 10.\n3. Return rev.",
+    "timeComplexity": "O(log10(N)) where N is the input integer value",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "public class NumberReversal {\n    public static int reverse(int num) {\n        int rev = 0;\n        while (num > 0) {\n            int rem = num % 10;\n            rev = (rev * 10) + rem;\n            num /= 10;\n        }\n        return rev;\n    }\n\n    public static void main(String[] args) {\n        int number = 12345;\n        int reversed = reverse(number);\n        System.out.println(\"Original: \" + number);\n        System.out.println(\"Reversed: \" + reversed);\n    }\n}",
+    "output": "Original: 12345\nReversed: 54321",
+    "id": 6
+  },
+  {
+    "category": "numbers",
+    "title": "Check Palindrome Number",
+    "problemStatement": "Check whether a given integer is a Palindrome (reads the same backward as forward, e.g. 121, 111).",
+    "explanation": "Store a copy of the original number. Reverse the number using the remainder method. Compare the reversed value with the saved original copy. If they are equal, the number is a palindrome.",
+    "algorithm": "1. Save temp = num.\n2. Initialize rev = 0.\n3. Loop while num > 0:\n   a. rem = num % 10.\n   b. rev = (rev * 10) + rem.\n   c. num = num / 10.\n4. If temp == rev, return true, else return false.",
+    "timeComplexity": "O(log10(N))",
+    "spaceComplexity": "O(1)",
+    "code": "public class PalindromeNumber {\n    public static boolean isPalindrome(int num) {\n        int temp = num;\n        int rev = 0;\n        while (num > 0) {\n            int rem = num % 10;\n            rev = (rev * 10) + rem;\n            num /= 10;\n        }\n        return temp == rev;\n    }\n\n    public static void main(String[] args) {\n        int val = 121;\n        System.out.println(val + \" is Palindrome: \" + isPalindrome(val));\n    }\n}",
+    "output": "121 is Palindrome: true",
+    "id": 7
+  },
+  {
+    "category": "numbers",
+    "title": "Check Armstrong Number",
+    "problemStatement": "Determine if an integer is an Armstrong number (the sum of cubes of its digits equals the number itself, e.g. 153).",
+    "explanation": "For a 3-digit number like 153, compute 1^3 + 5^3 + 3^3 = 1 + 125 + 27 = 153. Store the original copy, extract digits one by one, calculate their cubes, sum them up, and compare with the copy.",
+    "algorithm": "1. Store temp = num, sum = 0.\n2. Loop while num > 0:\n   a. rem = num % 10.\n   b. sum = sum + (rem * rem * rem).\n   c. num = num / 10.\n3. Return temp == sum.",
+    "timeComplexity": "O(log10(N))",
+    "spaceComplexity": "O(1)",
+    "code": "public class ArmstrongNumber {\n    public static boolean isArmstrong(int num) {\n        int temp = num;\n        int sum = 0;\n        while (num > 0) {\n            int rem = num % 10;\n            sum += (rem * rem * rem);\n            num /= 10;\n        }\n        return temp == sum;\n    }\n\n    public static void main(String[] args) {\n        int val = 153;\n        System.out.println(val + \" is Armstrong: \" + isArmstrong(val));\n    }\n}",
+    "output": "153 is Armstrong: true",
+    "id": 8
+  },
+  {
+    "category": "numbers",
+    "title": "Check Prime Number",
+    "problemStatement": "Write a Java program to check if a given integer is a Prime number.",
+    "explanation": "A prime number is divisible only by 1 and itself. To optimize check, verify divisibility from 2 up to the square root of the number. If divisible by any value in this range, it is not prime.",
+    "algorithm": "1. If num <= 1, return false.\n2. Loop from i = 2 to sqrt(num):\n   a. If num % i == 0, return false.\n3. If loop completes, return true.",
+    "timeComplexity": "O(sqrt(N))",
+    "spaceComplexity": "O(1)",
+    "code": "public class PrimeChecker {\n    public static boolean isPrime(int num) {\n        if (num <= 1) return false;\n        for (int i = 2; i * i <= num; i++) {\n            if (num % i == 0) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    public static void main(String[] args) {\n        int val = 13;\n        System.out.println(val + \" is Prime: \" + isPrime(val));\n    }\n}",
+    "output": "13 is Prime: true",
+    "id": 9
+  },
+  {
+    "category": "numbers",
+    "title": "Swap Two Numbers without Third Variable",
+    "problemStatement": "Swap two integer variables without using a temporary variable.",
+    "explanation": "You can swap two values using addition and subtraction arithmetic. Update the first variable to be the sum of both, then set the second variable as the difference between the sum and original second variable, and finally set the first variable as the difference.",
+    "algorithm": "1. a = a + b.\n2. b = a - b (b now holds the original value of a).\n3. a = a - b (a now holds the original value of b).",
+    "timeComplexity": "O(1)",
+    "spaceComplexity": "O(1)",
+    "code": "public class SwapNumbers {\n    public static void main(String[] args) {\n        int a = 10;\n        int b = 20;\n        System.out.println(\"Before Swap - a: \" + a + \", b: \" + b);\n        \n        a = a + b; // a becomes 30\n        b = a - b; // b becomes 10\n        a = a - b; // a becomes 20\n        \n        System.out.println(\"After Swap - a: \" + a + \", b: \" + b);\n    }\n}",
+    "output": "Before Swap - a: 10, b: 20\nAfter Swap - a: 20, b: 10",
+    "id": 10
+  },
+  {
+    "category": "arrays",
+    "title": "Find Greatest Element in Array",
+    "problemStatement": "Locate the maximum value inside a given integer array.",
+    "explanation": "Initialize a variable 'max' with the first element of the array. Iterate through the rest of the array elements. For each element, if it is greater than 'max', update 'max' with this element's value.",
+    "algorithm": "1. Initialize max = arr[0].\n2. Loop from i = 1 to arr.length - 1:\n   a. If arr[i] > max, set max = arr[i].\n3. Return max.",
+    "timeComplexity": "O(N)",
+    "spaceComplexity": "O(1)",
+    "code": "public class MaxInArray {\n    public static int findMax(int[] arr) {\n        int max = arr[0];\n        for (int i = 1; i < arr.length; i++) {\n            if (arr[i] > max) {\n                max = arr[i];\n            }\n        }\n        return max;\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {25, 945, 326, 8, 90};\n        System.out.println(\"Maximum element: \" + findMax(nums));\n    }\n}",
+    "output": "Maximum element: 945",
+    "id": 11
+  },
+  {
+    "category": "arrays",
+    "title": "Find Missing Number in Array",
+    "problemStatement": "Find the single missing number in an array containing distinct integers in the range 1 to N.",
+    "explanation": "Calculate the sum of all numbers from 1 to N using the arithmetic formula N*(N+1)/2. Then calculate the actual sum of elements present in the array. The difference between the expected formula sum and the actual array elements sum is the missing number.",
+    "algorithm": "1. Calculate N = array length + 1.\n2. Calculate expected_sum = N * (N + 1) / 2.\n3. Calculate actual_sum by summing all array elements.\n4. Return expected_sum - actual_sum.",
+    "timeComplexity": "O(N)",
+    "spaceComplexity": "O(1)",
+    "code": "public class MissingNumber {\n    public static int findMissing(int[] arr, int n) {\n        int expectedSum = n * (n + 1) / 2;\n        int actualSum = 0;\n        for (int num : arr) {\n            actualSum += num;\n        }\n        return expectedSum - actualSum;\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {1, 2, 4, 5, 6}; // 3 is missing, N = 6\n        System.out.println(\"Missing Number: \" + findMissing(nums, 6));\n    }\n}",
+    "output": "Missing Number: 3",
+    "id": 12
+  },
+  {
+    "category": "arrays",
+    "title": "Reverse Array in Place",
+    "problemStatement": "Reverse the order of elements in an integer array in place (without allocating extra array memory).",
+    "explanation": "Use a two-pointer approach. Place one pointer 'start' at index 0 and another 'end' at index length-1. Swap elements at these two pointers, then increment 'start' and decrement 'end' until they meet in the middle.",
+    "algorithm": "1. Initialize start = 0, end = arr.length - 1.\n2. While start < end:\n   a. Swap arr[start] and arr[end].\n   b. start++, end--.",
+    "timeComplexity": "O(N)",
+    "spaceComplexity": "O(1)",
+    "code": "import java.util.Arrays;\n\npublic class ReverseArray {\n    public static void reverse(int[] arr) {\n        int start = 0;\n        int end = arr.length - 1;\n        while (start < end) {\n            int temp = arr[start];\n            arr[start] = arr[end];\n            arr[end] = temp;\n            start++;\n            end--;\n        }\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {10, 20, 30, 40, 50};\n        reverse(nums);\n        System.out.println(\"Reversed: \" + Arrays.toString(nums));\n    }\n}",
+    "output": "Reversed: [50, 40, 30, 20, 10]",
+    "id": 13
+  },
+  {
+    "category": "sorting_searching",
+    "title": "Sort Array using Bubble Sort",
+    "problemStatement": "Sort an array of integers in ascending order using Bubble Sort.",
+    "explanation": "Bubble Sort compares adjacent elements and swaps them if they are in the wrong order. This pass is repeated until the array is sorted. With each pass, the largest unsorted element bubbles up to its correct final index.",
+    "algorithm": "1. Loop i from 0 to length - 1 (outer loop).\n2. Loop j from 0 to length - i - 2 (inner loop).\n3. If arr[j] > arr[j+1], swap them.\n4. Repeat until outer loop completes.",
+    "timeComplexity": "O(N^2)",
+    "spaceComplexity": "O(1)",
+    "code": "import java.util.Arrays;\n\npublic class BubbleSort {\n    public static void sort(int[] arr) {\n        int n = arr.length;\n        for (int i = 0; i < n - 1; i++) {\n            for (int j = 0; j < n - i - 1; j++) {\n                if (arr[j] > arr[j + 1]) {\n                    int temp = arr[j];\n                    arr[j] = arr[j + 1];\n                    arr[j + 1] = temp;\n                }\n            }\n        }\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {22, 5, 6, 88, 9};\n        sort(nums);\n        System.out.println(\"Sorted: \" + Arrays.toString(nums));\n    }\n}",
+    "output": "Sorted: [5, 6, 9, 22, 88]",
+    "id": 14
   }
 ]
