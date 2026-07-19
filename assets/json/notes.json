@@ -776,15 +776,495 @@
     "id": 97
   },
   {
-    "id": 98,
     "category": "spring_framework",
-    "title": "Spring Boot Basics & Bean Lifecycle",
-    "description": "Spring Boot automates dependency configuration and environment setups. At its core, the IoC Container manages object creation, dependency injection pipelines, stereotyping component scopes, and intercepting initialization/destruction callbacks.",
-    "examples": "### 1. Inversion of Control (IoC) & Beans\nInstead of developers manually instantiating and coupling classes using `new Class()`, the **IoC Container** manages the creation, configuration, wiring, and lifecycle of objects, known as **Beans**.\n\n```mermaid\ngraph LR\n    DevClass[\"Developer Classes (@Service, @Repository, etc.)\"] --> IoC[\"Spring IoC Container\"]\n    MetaConfig[\"Metadata Config (Properties, Annotations)\"] --> IoC\n    IoC --> BeanRegistry[\"Initialized Beans (ApplicationContext)\"]\n```\n\n*   **BeanFactory**: A lightweight lazy-loading container providing basic configuration.\n*   **ApplicationContext**: The default Spring Boot container. Extends `BeanFactory` adding AOP integration, events propagation, internationalization, and auto-configuration.\n\n---\n\n### 2. Component Scanning & Stereotypes\nThe `@SpringBootApplication` annotation contains `@ComponentScan` which scans designated packages for classes decorated with stereotype annotations:\n\n*   `@Component`: Generic managed bean.\n*   `@Service`: Denotes business logic services.\n*   `@Repository`: Denotes database persistence layers (includes automatic exception translation).\n*   `@Controller` / `@RestController`: Handles MVC/REST HTTP request mappings.\n\n---\n\n### 3. Dependency Injection (DI) Styles\n1. **Field Injection (Not Recommended)**: Uses `@Autowired` directly on fields. Easy but hard to test and uses reflection.\n2. **Setter Injection**: Injection via setter methods. Useful for optional or mutable dependencies.\n3. **Constructor Injection (Recommended)**: Injects dependencies via class constructors. Enables immutable dependencies (`private final`), makes unit testing straightforward, and detects circular references at compile/startup time.\n\n```java\n// Recommended Constructor Injection\n@Service\npublic class EmployeeService {\n    private final EmployeeRepository repository;\n\n    // Autowired implicitly on single constructors in Spring 4.3+\n    public EmployeeService(EmployeeRepository repository) {\n        this.repository = repository;\n    }\n}\n```\n\n---\n\n### 4. Bean Lifecycle Flow\nThe complete lifecycle sequence of a Spring Bean is a critical architecture concept:\n\n```mermaid\nsequenceDiagram\n    participant IoC as IoC Container\n    participant Bean as Bean Class\n    participant BPP as BeanPostProcessor\n\n    IoC->>Bean: 1. Instantiate (Constructor call)\n    IoC->>Bean: 2. Populate Properties (Dependency Injection)\n    IoC->>Bean: 3. Set Aware Interfaces (BeanNameAware, etc.)\n    IoC->>BPP: 4. postProcessBeforeInitialization()\n    IoC->>Bean: 5. @PostConstruct Method\n    IoC->>Bean: 6. afterPropertiesSet() (InitializingBean)\n    IoC->>BPP: 7. postProcessAfterInitialization() (Proxy wrapping)\n    Note over Bean: Bean is Ready (Active Service)\n    IoC->>Bean: 8. @PreDestroy Method (Shutdown)\n    IoC->>Bean: 9. destroy() (DisposableBean)\n```\n\n---\n\n### 5. Bean Scopes\n*   **Singleton (Default)**: Single shared instance per Spring container.\n*   **Prototype**: A new bean instance is created every time it is requested from the container.\n*   **Request**: Single instance per HTTP request lifecycle (Web apps).\n*   **Session**: Single instance per HTTP Session (Web apps).\n\n---\n\n### 6. Spring Boot Auto-Configuration & Starters\n*   **Starters (`spring-boot-starter-*`)**: Group compatible dependency libraries (e.g. Tomcat, Jackson, Hibernate, Validation) into single artifacts, simplifying build files.\n*   **Auto-Configuration (`@EnableAutoConfiguration`)**: Evaluates classpath dependencies and configuration properties at startup to automatically configure and register required infrastructure beans (like `DataSource` or `TransactionManager`) without manual XML/Java declarations.",
-    "summary": "Understand Inversion of Control (IoC), Constructor vs Field injection, Component Scanning, Singleton/Prototype scopes, complete PostConstruct/PreDestroy lifecycles, and Auto-Configuration mechanisms."
+    "title": "JDBC Module 1: JDBC Basics",
+    "description": "Introduction to JDBC, database access architecture, and JDBC Driver Types (Type 1 to Type 4).",
+    "examples": "### 1. What is JDBC?\nJava Database Connectivity (JDBC) is a standard Java API that defines how a Java application accesses database storage. It enables execution of SQL queries, retrieving results, and managing database connections.\n\n---\n\n### 2. JDBC Architecture\nJDBC uses a two-tier architecture:\n*   **Application Tier**: Java code calling JDBC APIs (DriverManager, Connection).\n*   **Database Tier**: Database engine executing raw SQL commands.\n\n---\n\n### 3. JDBC Driver Types\n*   **Type 1 (JDBC-ODBC Bridge)**: Legacy driver that translates JDBC calls into ODBC driver calls. Requires local binary installation; slow and deprecated.\n*   **Type 2 (Native API Driver)**: Converts JDBC calls into database-specific client client libraries (written in C/C++). Requires local installation; faster than Type 1 but lacks portability.\n*   **Type 3 (Network Protocol Driver)**: Uses a middleware server to translate JDBC calls to database protocols. High flexibility; no local installation needed.\n*   **Type 4 (Thin Driver - Recommended)**: Direct Java database driver. Communicates directly with database engine using socket connections. Pure Java implementation; fastest, most portable, and requires no local installation.",
+    "summary": "JDBC API connects Java apps to databases. Type 4 Thin Driver is a pure Java implementation that communicates directly via database sockets, offering the highest performance and portability.",
+    "id": 98
   },
   {
-    "id": 99,
+    "category": "spring_framework",
+    "title": "JDBC Module 2: JDBC Core Components",
+    "description": "Key interfaces in the JDBC API: DriverManager, Connection, Statements, and ResultSets.",
+    "examples": "### 1. Core Interfaces\nThe `java.sql` package defines the core components of JDBC:\n*   **DriverManager**: Manages database driver registrations and matches connection requests.\n*   **Connection**: Represents a session session with the target database database. Used to create statement builders and manage transactions.\n*   **Statement**: Executes basic SQL queries without parameter bindings.\n*   **PreparedStatement**: Precompiles SQL queries, supporting parameter binding to prevent SQL Injection.\n*   **CallableStatement**: Executes database stored procedures and functions.\n*   **ResultSet**: Holds database tables retrieved by SQL queries.\n*   **ResultSetMetaData**: Provides metadata about ResultSet columns (names, types).\n*   **DatabaseMetaData**: Provides database system information (version, product name).",
+    "summary": "Core JDBC interfaces manage connection sessions, statement queries, database metadata details, and target SQL query response tables.",
+    "id": 99
+  },
+  {
+    "category": "spring_framework",
+    "title": "JDBC Module 3: Database Connectivity",
+    "description": "JDBC connection lifecycle, custom connection pools, and DataSource configurations.",
+    "examples": "### 1. JDBC Connection Flow\nEstablishing a basic connection requires loading the database driver and getting a connection instance:\n```java\n// Load driver class (optional in modern JDBC 4.0+)\nClass.forName(\"com.mysql.cj.jdbc.Driver\");\n\n// Connect using JDBC URL, username, and password\nConnection conn = DriverManager.getConnection(\n    \"jdbc:mysql://localhost:3306/mydb\", \"user\", \"pass\"\n);\n```\n\n---\n\n### 2. Connection Pooling & DataSource\nOpening a database socket connection is expensive. **Connection Pooling** keeps connections open in a pool, reusing them instead of opening new sockets for every request.\n*   **DataSource**: A modern JDBC interface for managing connections, supporting connection pooling out-of-the-box.\n*   **HikariCP**: The high-performance connection pool used by default in Spring Boot applications.",
+    "summary": "Establishing database connections is expensive. Use connection pooling (like HikariCP) via a DataSource wrapper to reuse open database connections.",
+    "id": 100
+  },
+  {
+    "category": "spring_framework",
+    "title": "JDBC Module 4: Statement",
+    "description": "Creating Statement objects, execution styles (execute, executeQuery, executeUpdate), and batch updates.",
+    "examples": "### 1. Statement Creation & Execution\n`Statement` is used to execute static SQL queries:\n*   `executeQuery(sql)`: Executes `SELECT` statements, returning a `ResultSet`.\n*   `executeUpdate(sql)`: Executes insert, update, or delete commands, returning the number of affected rows (an `int`).\n*   `execute(sql)`: Can run any SQL command. Returns `true` if the first result is a `ResultSet` (query), and `false` if it is an update count.\n\n```java\nStatement stmt = conn.createStatement();\nResultSet rs = stmt.executeQuery(\"SELECT * FROM employees\");\n```\n\n---\n\n### 2. Batch Processing\nAllows grouping multiple SQL statements and executing them in a single database roundtrip, reducing network latency:\n```java\nStatement stmt = conn.createStatement();\nstmt.addBatch(\"INSERT INTO users VALUES (1, 'Alice')\");\nstmt.addBatch(\"INSERT INTO users VALUES (2, 'Bob')\");\nint[] results = stmt.executeBatch(); // Executes both statements in one go\n```",
+    "summary": "Statement executes static SQL queries. Use executeQuery for selects, executeUpdate for modifications, and executeBatch to run group updates in a single roundtrip.",
+    "id": 101
+  },
+  {
+    "category": "spring_framework",
+    "title": "JDBC Module 5: PreparedStatement",
+    "description": "Parameter binding, query precompilation, performance benefits, and SQL Injection prevention.",
+    "examples": "### 1. What is PreparedStatement?\n`PreparedStatement` extends `Statement`. It precompiles SQL queries on the database server.\n*   **Parameter Binding**: Uses placeholders (`?`) to pass variables safely.\n\n```java\nString sql = \"SELECT * FROM users WHERE email = ? AND status = ?\";\nPreparedStatement pstmt = conn.prepareStatement(sql);\npstmt.setString(1, \"test@email.com\");\npstmt.setInt(2, 1);\nResultSet rs = pstmt.executeQuery();\n```\n\n---\n\n### 2. SQL Injection Prevention\nSQL Injection occurs when user input is concatenated directly into SQL queries:\n*   *Vulnerable code*: `\"SELECT * FROM users WHERE pass = '\" + input + \"'\"`. If input is `' OR '1'='1`, the query returns all users.\n*   *Secure PreparedStatement*: Placeholder values are treated strictly as literals, preventing code injection.\n\n---\n\n### 3. Performance Benefits\nBecause the query structure is precompiled and cached, the database server does not need to parse, compile, and plan the query execution on subsequent calls.",
+    "summary": "PreparedStatement compiles queries ahead of time and uses placeholders for variables. This improves performance and prevents SQL Injection.",
+    "id": 102
+  },
+  {
+    "category": "spring_framework",
+    "title": "JDBC Module 6: CallableStatement",
+    "description": "Invoking database stored procedures and functions, and working with IN/OUT/INOUT parameters.",
+    "examples": "### 1. Calling Stored Procedures\n`CallableStatement` is used to execute database stored procedures and functions:\n```java\n// Prepare call signature\nCallableStatement cstmt = conn.prepareCall(\"{call getEmployeeDetails(?, ?)}\");\n\n// Bind IN parameter (Employee ID)\ncstmt.setInt(1, 101);\n\n// Register OUT parameter database type (Employee Salary)\ncstmt.registerOutParameter(2, java.sql.Types.DOUBLE);\n\n// Execute procedure call\ncstmt.execute();\n\n// Retrieve output value\ndouble salary = cstmt.getDouble(2);\n```\n\n---\n\n### 2. CallableStatement Parameter Types\n*   **IN**: Passes input values to the procedure.\n*   **OUT**: Retrieves output values returned by the procedure.\n*   **INOUT**: Passes input values to the procedure and retrieves updated values back from it.",
+    "summary": "CallableStatement executes database stored procedures and functions. Register OUT parameters to retrieve return values.",
+    "id": 103
+  },
+  {
+    "category": "spring_framework",
+    "title": "JDBC Module 7: ResultSet",
+    "description": "ResultSet cursor navigation, Scrollable and Updatable configurations, Fetch Size, and database cursors.",
+    "examples": "### 1. ResultSet Navigation\n`ResultSet` maintains a pointer (cursor) pointing to the current row of data.\n*   `next()`: Moves the cursor to the next row (returns `false` when no more rows exist).\n\n---\n\n### 2. Scrollable & Updatable ResultSets\nDefine cursor capabilities during statement creation:\n```java\nStatement stmt = conn.createStatement(\n    ResultSet.TYPE_SCROLL_INSENSITIVE, // Allows forward and backward scrolling\n    ResultSet.CONCUR_UPDATABLE         // Allows modifying rows in the ResultSet\n);\n```\n\n---\n\n### 3. Fetch Size\nConfigures the number of rows retrieved from the database per network roundtrip (`stmt.setFetchSize(50)`). Tweak this setting to balance network latency and memory usage when reading large tables.",
+    "summary": "ResultSet manages database row pointer cursors. Configure scrollable or updatable settings, and set fetch sizes to optimize memory usage.",
+    "id": 104
+  },
+  {
+    "category": "spring_framework",
+    "title": "JDBC Module 8: Transactions",
+    "description": "Transaction management: commit, rollback, savepoints, isolation levels, and ACID properties.",
+    "examples": "### 1. Transaction Operations\nBy default, database connections automatically commit every statement. Turn off auto-commit to manage transactions manually:\n```java\ntry {\n    conn.setAutoCommit(false); // Start transaction block\n    \n    // Execute multiple database statements here...\n    \n    conn.commit(); // Commit transaction to save changes\n} catch (Exception e) {\n    conn.rollback(); // Rollback transaction to discard changes on failure\n}\n```\n\n---\n\n### 2. Savepoints\nAllow rolling back a transaction to a specific point, rather than discarding the entire transaction:\n```java\nSavepoint sp = conn.setSavepoint(\"PointA\");\nconn.rollback(sp); // Rollback modifications made after Savepoint A\n```\n\n---\n\n### 3. Isolation Levels\n*   `TRANSACTION_READ_UNCOMMITTED`: Dirty reads allowed.\n*   `TRANSACTION_READ_COMMITTED`: Prevents dirty reads.\n*   `TRANSACTION_REPEATABLE_READ`: Prevents non-repeatable reads.\n*   `TRANSACTION_SERIALIZABLE`: Prevents phantom reads.",
+    "summary": "Disable auto-commit to manage transactions manually. Use rollback on exception to discard failures, and savepoints to rollback to specific steps.",
+    "id": 105
+  },
+  {
+    "category": "spring_framework",
+    "title": "JDBC Module 9: Batch Processing",
+    "description": "Implementing high-performance batch operations in JDBC.",
+    "examples": "### 1. PreparedStatement Batch Processing\nBatch processing groups multiple SQL operations and sends them to the database in a single network call. This is crucial for performance when inserting or updating large datasets:\n\n```java\nString sql = \"INSERT INTO logs (level, message) VALUES (?, ?)\";\nPreparedStatement pstmt = conn.prepareStatement(sql);\n\nfor (Log log : logsList) {\n    pstmt.setString(1, log.getLevel());\n    pstmt.setString(2, log.getMessage());\n    pstmt.addBatch(); // Add statement parameters to batch\n}\n\nint[] affectedRows = pstmt.executeBatch(); // Send batch to database\n```\n\n---\n\n### 2. Tuning JDBC Batching\n*   **Batch Size**: Split large datasets into chunks (e.g. 500 or 1000 rows per batch) to avoid memory exhaustion.\n*   **Database Support**: Verify database driver batching configurations (e.g. enabling `rewriteBatchedStatements=true` for MySQL).",
+    "summary": "Use PreparedStatement.addBatch() to queue queries, executing them in chunks using executeBatch() to improve performance.",
+    "id": 106
+  },
+  {
+    "category": "spring_framework",
+    "title": "JDBC Module 10: Advanced JDBC",
+    "description": "Large Object handling (BLOB, CLOB), RowSets, pagination, and retrieving generated keys.",
+    "examples": "### 1. Large Objects (BLOB / CLOB)\n*   **BLOB (Binary Large Object)**: Stores binary files like images or videos (`pstmt.setBinaryStream()`).\n*   **CLOB (Character Large Object)**: Stores large text files (`pstmt.setCharacterStream()`).\n\n---\n\n### 2. RowSet Interfaces\n`RowSet` extends `ResultSet` to act as a JavaBean container:\n*   **CachedRowSet**: Disconnects from the database once data is fetched, letting the application read and modify data offline. Reconnects later to sync updates.\n\n---\n\n### 3. Retrieving Generated Keys\nRetrieve auto-generated primary keys (e.g., auto-increment IDs) after inserting a row:\n```java\nPreparedStatement pstmt = conn.prepareStatement(\n    \"INSERT INTO users (name) VALUES (?)\",\n    Statement.RETURN_GENERATED_KEYS\n);\npstmt.executeUpdate();\nResultSet keys = pstmt.getGeneratedKeys();\nif (keys.next()) {\n    long id = keys.getLong(1); // Auto-generated ID\n}\n```",
+    "summary": "Use BLOB/CLOB for files. CachedRowSets work offline. Pass RETURN_GENERATED_KEYS to Statement to retrieve auto-generated IDs after inserts.",
+    "id": 107
+  },
+  {
+    "category": "spring_framework",
+    "title": "JDBC Module 11: JDBC Interview Topics",
+    "description": "Answers to top JDBC interview questions: Statement vs PreparedStatement, locking strategies, and connection leaks.",
+    "examples": "### 1. Top Q&A\n*   **What is the difference between Statement and PreparedStatement?** `Statement` compiles queries on every execution and is vulnerable to SQL injection. `PreparedStatement` precompiles queries, caches them for reuse, and prevents SQL injection using parameter placeholders.\n*   **What is a Connection Leak?** Occurs when connections are not closed after use. Over time, all open connections are exhausted, causing the database to reject new connection requests. Always close connections using a try-with-resources block.\n*   **Optimistic vs. Pessimistic Locking:**\n    *   *Optimistic Locking*: Assumes conflicts are rare. Uses version numbers to detect modifications. If a conflict occurs, the transaction fails.\n    *   *Pessimistic Locking*: Assumes conflicts are common. Locks database rows until the transaction commits, blocking other connections.\n*   **Why does Connection Pooling improve performance?** Spawning a database socket connection requires expensive handshakes. Connection pools keep connections open and reuse them, avoiding connection overhead.",
+    "summary": "PreparedStatement precompiles queries and prevents SQL Injection. Prevent connection leaks by closing connections using try-with-resources.",
+    "id": 108
+  },
+  {
+    "category": "spring_framework",
+    "title": "Servlets Module 1: Servlet Basics",
+    "description": "Understanding Java Servlets, Servlet Container lifecycles, and Web Server vs Servlet Container.",
+    "examples": "### 1. What is a Servlet?\nA Servlet is a Java class that runs inside a servlet container to handle HTTP requests and generate dynamic web content.\n\n---\n\n### 2. Web Server vs. Servlet Container\n*   **Web Server (e.g. Apache HTTP Server)**: Serves static assets like HTML, CSS, and images. Cannot execute Java code.\n*   **Servlet Container (e.g. Apache Tomcat)**: Compiles and executes Java Servlets, managing request-response lifecycles and thread allocation.\n\n---\n\n### 3. Servlet Lifecycle\nManaged by the Servlet Container:\n1.  **Instantiation**: Spawns class instances when the server starts or on the first request.\n2.  **Initialization (`init()`)**: Runs once to configure resources.\n3.  **Service Processing (`service()`)**: Dispatches HTTP requests to appropriate methods (`doGet`, `doPost`).\n4.  **Destruction (`destroy()`)**: Runs once when the server shuts down to clean up resources.",
+    "summary": "Servlets run inside servlet containers (like Tomcat) to handle HTTP requests. The container manages their lifecycle (init, service, destroy).",
+    "id": 109
+  },
+  {
+    "category": "spring_framework",
+    "title": "Servlets Module 2: Servlet API",
+    "description": "HttpServlet class structure, GenericServlet interfaces, ServletConfig, and ServletContext configurations.",
+    "examples": "### 1. API Classes Hierarchy\n*   **Servlet (Interface)**: Root interface defining servlet lifecycle methods.\n*   **GenericServlet (Class)**: Protocol-independent servlet implementation.\n*   **HttpServlet (Class)**: HTTP-specific servlet implementation (used by web apps). Override `doGet`, `doPost`, `doPut`, or `doDelete`.\n\n---\n\n### 2. ServletConfig vs. ServletContext\n*   **ServletConfig**: Initial parameters configuration **exclusive to a single Servlet**.\n*   **ServletContext**: Parameters configuration **shared across all Servlets** in the web application.\n\n```java\n// Retrieving config and context parameters\nString dbUrl = getServletContext().getInitParameter(\"dbUrl\"); // Shared\nString adminEmail = getServletConfig().getInitParameter(\"adminEmail\"); // Exclusive\n```",
+    "summary": "HttpServlet is used for web applications. ServletConfig holds settings for a single servlet; ServletContext holds shared settings for the entire application.",
+    "id": 110
+  },
+  {
+    "category": "spring_framework",
+    "title": "Servlets Module 3: HTTP Request Methods",
+    "description": "Understanding HTTP methods: GET, POST, PUT, DELETE, and OPTIONS.",
+    "examples": "### 1. HTTP Method Mappings\nHttpServlet dispatches HTTP requests to corresponding Java methods:\n*   `doGet()`: Retrieves resources. Parameters are visible in the URL; should be safe and idempotent (cause no side-effects).\n*   `doPost()`: Creates resources. Parameters are sent in the HTTP request body; can modify database state.\n*   `doPut()`: Replaces or updates resources. Should be idempotent.\n*   `doDelete()`: Deletes resources.\n*   `doOptions()`: Retrieves supported HTTP methods for the target URL. Useful for CORS preflight checks.\n\n---\n\n### 2. Idempotency vs. Safety\n*   **Safe**: Methods that do not modify resources (e.g. GET).\n*   **Idempotent**: Executing the request multiple times yields the same result as executing it once (e.g. GET, PUT, DELETE). POST is not idempotent, as executing it multiple times creates multiple duplicate resources.",
+    "summary": "HttpServlet maps HTTP methods to doGet, doPost, etc. GET is safe and idempotent. POST creates resources and is not idempotent.",
+    "id": 111
+  },
+  {
+    "category": "spring_framework",
+    "title": "Servlets Module 4: Request Handling",
+    "description": "Reading parameters, HTTP headers, cookies, and handling multipart file uploads.",
+    "examples": "### 1. Reading Request Inputs\nRead client input parameters, headers, and cookies inside servlet methods:\n```java\n@Override\nprotected void doPost(HttpServletRequest request, HttpServletResponse response) {\n    // Read query parameter\n    String username = request.getParameter(\"username\");\n    \n    // Read header value\n    String userAgent = request.getHeader(\"User-Agent\");\n    \n    // Read cookies\n    Cookie[] cookies = request.getCookies();\n}\n```\n\n---\n\n### 2. Handling Multipart File Uploads\nTo handle file uploads, annotate the Servlet class with `@MultipartConfig`:\n```java\n@WebServlet(\"/upload\")\n@MultipartConfig\npublic class FileUploadServlet extends HttpServlet {\n    @Override\n    protected void doPost(HttpServletRequest request, HttpServletResponse response) {\n        Part filePart = request.getPart(\"file\"); // Get upload file stream\n        String fileName = filePart.getSubmittedFileName();\n        filePart.write(\"C:/uploads/\" + fileName);\n    }\n}\n```",
+    "summary": "Use request.getParameter() to read user input, and annotate the Servlet with @MultipartConfig to handle file uploads using request.getPart().",
+    "id": 112
+  },
+  {
+    "category": "spring_framework",
+    "title": "Servlets Module 5: Response Handling",
+    "description": "Writing response bodies, HTTP status codes, redirects, and request forwarding.",
+    "examples": "### 1. Generating Response Bodies\nWrite data back to the client using a PrintWriter stream:\n```java\nresponse.setContentType(\"application/json\");\nresponse.setCharacterEncoding(\"UTF-8\");\nresponse.setStatus(HttpServletResponse.SC_OK); // HTTP 200\n\nPrintWriter out = response.getWriter();\nout.print(\"{\\\"status\\\":\\\"success\\\"}\");\nout.flush();\n```\n\n---\n\n### 2. Request Forward vs. Client Redirect\n| Feature | Forward | Redirect |\n| :--- | :--- | :--- |\n| **Execution** | Server-side routing. | Client-side routing. |\n| **Browser URL** | Does not change. | Changes to target redirect URL. |\n| **Network calls** | 1 client request. | 2 client requests (HTTP 302 redirect). |\n| **Data sharing** | Shares request attributes. | Cannot share request attributes easily. |\n\n```java\n// Forward request (server-side)\nrequest.getRequestDispatcher(\"/success.jsp\").forward(request, response);\n\n// Redirect client (client-side)\nresponse.sendRedirect(\"/login\");\n```",
+    "summary": "Forwarding happens on the server in a single request. Redirecting sends a 302 response to the browser, triggering a new request to the target URL.",
+    "id": 113
+  },
+  {
+    "category": "spring_framework",
+    "title": "Servlets Module 6: Session Management",
+    "description": "Session tracking strategies: HttpSession, Cookies, URL Rewriting, and Hidden Form Fields.",
+    "examples": "### 1. Why Session Management?\nHTTP is stateless. Session management tracks client states across multiple requests.\n\n---\n\n### 2. Session Tracking Strategies\n1.  **HttpSession (Recommended)**: Stores user data on the server. The server assigns a unique session ID (JSESSIONID) and sends it to the browser as a cookie. The browser includes this cookie in subsequent requests.\n    ```java\n    HttpSession session = request.getSession();\n    session.setAttribute(\"user\", userObj); // Saves user state on server\n    ```\n2.  **Cookies**: Stores key-value data directly in the browser. Size is limited, and users can modify cookie values.\n3.  **URL Rewriting**: Appends the session ID to every URL link:\n    `href=\"profile;jsessionid=123AB\"`. Useful when browsers disable cookies.\n4.  **Hidden Form Fields**: Stores session data in hidden HTML fields:\n    `<input type=\"hidden\" name=\"sessionID\" value=\"123AB\">`.",
+    "summary": "HttpSession associates client requests with server-side session data using a unique JSESSIONID cookie.",
+    "id": 114
+  },
+  {
+    "category": "spring_framework",
+    "title": "Servlets Module 7: Filters",
+    "description": "Filter lifecycle phases, chaining, authentication filters, and CORS configurations.",
+    "examples": "### 1. What is a Filter?\nA Filter intercepts requests and responses before they reach the servlet, useful for cross-cutting concerns like logging, authentication, and CORS headers.\n\n---\n\n### 2. Filter Lifecycle\n*   `init(FilterConfig)`: Runs once when the filter is loaded.\n*   `doFilter(Request, Response, Chain)`: Executed for every matching request. You must call `chain.doFilter()` to pass the request to the next filter or target servlet in the chain.\n*   `destroy()`: Runs once when the server shuts down.\n\n---\n\n### 3. Code Example\n```java\n@WebFilter(\"/*\")\npublic class LoggingFilter implements Filter {\n    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) {\n        System.out.println(\"Request intercepted at: \" + new Date());\n        chain.doFilter(req, resp); // Pass request along the filter chain\n    }\n}\n```",
+    "summary": "Filters intercept requests and responses. Implement doFilter and call chain.doFilter() to pass the request along the filter chain.",
+    "id": 115
+  },
+  {
+    "category": "spring_framework",
+    "title": "Servlets Module 8: Listeners",
+    "description": "Application event listeners: Context, Session, and Request listeners.",
+    "examples": "### 1. What are Listeners?\nListeners monitor events in the web application lifecycle, executing custom code when events occur (e.g., application startup, session timeout).\n\n---\n\n### 2. Core Listener Interfaces\n*   **ServletContextListener**: Triggers code when the application starts up or shuts down. Useful for initializing database connection pools:\n    ```java\n    @WebListener\n    public class AppInitializer implements ServletContextListener {\n        public void contextInitialized(ServletContextEvent sce) {\n            System.out.println(\"Application started!\");\n        }\n    }\n    ```\n*   **HttpSessionListener**: Triggers code when sessions are created or destroyed. Useful for tracking active users online.\n*   **ServletRequestListener**: Triggers code on every request instantiation.",
+    "summary": "Listeners monitor web application lifecycle events. ServletContextListener runs initialization code when the application starts up.",
+    "id": 116
+  },
+  {
+    "category": "spring_framework",
+    "title": "Servlets Module 9: Servlet Annotations",
+    "description": "Configuring web apps using modern annotations like WebServlet, WebFilter, and WebListener instead of web.xml.",
+    "examples": "### 1. Legacy web.xml Configuration\nHistorically, servlets were configured inside a massive XML file called `web.xml`. This became difficult to maintain as applications grew.\n\n---\n\n### 2. Modern Servlet 3.0+ Annotations\nServlet 3.0 introduced annotations to configure servlets directly in Java classes, eliminating web.xml configuration:\n*   **@WebServlet**: Registers a class as a servlet, mapping it to target URL patterns:\n    ```java\n    @WebServlet(name = \"MyServlet\", urlPatterns = {\"/home\", \"/index\"})\n    public class HomeServlet extends HttpServlet {}\n    ```\n*   **@WebFilter**: Registers a class as a filter, mapping it to URL patterns:\n    ```java\n    @WebFilter(urlPatterns = \"/api/*\")\n    public class SecurityFilter implements Filter {}\n    ```\n*   **@WebListener**: Registers a class as an application event listener.",
+    "summary": "Servlet 3.0 annotations (@WebServlet, @WebFilter, @WebListener) configure servlet components directly in Java, eliminating legacy web.xml configuration.",
+    "id": 117
+  },
+  {
+    "category": "spring_framework",
+    "title": "Servlets Module 10: JSP Basics",
+    "description": "JSP lifecycle, Expression Language (EL), and JSTL tag libraries.",
+    "examples": "### 1. What is JSP?\nJavaServer Pages (JSP) is a template technology that allows writing HTML mixed with Java code to generate dynamic pages on the server.\n\n---\n\n### 2. JSP Lifecycle\nA JSP page is translated into a Java Servlet class the first time it is requested:\n```\nJSP File (.jsp) --> Servlet Source (.java) --> Compiled Class (.class) --> Execution\n```\n\n---\n\n### 3. Expression Language & JSTL\n*   **Expression Language (EL)**: Retrieves Java object properties dynamically inside HTML: `${user.name}`.\n*   **JSTL (JSP Standard Tag Library)**: Replaces Java scriptlet code with structured loops and conditional tags:\n    ```jsp\n    <c:forEach var=\"item\" items=\"${itemsList}\">\n        <p>${item.name}</p>\n    </c:forEach>\n    ```",
+    "summary": "JSP files compile into Java Servlets behind the scenes. Use Expression Language and JSTL to render dynamic page templates without raw Java scriptlets.",
+    "id": 118
+  },
+  {
+    "category": "spring_framework",
+    "title": "Servlets Module 11: Servlet Interview Topics",
+    "description": "Answers to top Servlets interview questions: servlet thread safety, filters vs interceptors, and application context.",
+    "examples": "### 1. Top Q&A\n*   **Are Servlets thread-safe?** No. The Servlet Container allocates a single instance of a Servlet class, sharing it across all requests. If multiple client requests access a servlet concurrently, they execute on different threads. Avoid declaring instance variables inside servlets to prevent thread safety issues.\n*   **What is the difference between Filter and Interceptor?**\n    *   *Filter*: Part of the Servlet specification. Intercepts requests before reaching Spring APIs; has no access to Spring context.\n    *   *Interceptor*: Part of the Spring Framework. Intercepts requests after they pass through filters; has full access to Spring context and target controller methods.\n*   **What happens if a servlet doGet throws an exception?** The Servlet Container returns an HTTP 500 (Internal Server Error) page to the browser. Customize error pages inside web.xml or configuration files to handle servlet errors gracefully.",
+    "summary": "Servlets are single-instance multi-threaded classes and are not thread-safe. Avoid declaring instance variables. Filters run outside Spring; interceptors run inside.",
+    "id": 119
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 1: Hibernate Basics",
+    "description": "Understanding Object-Relational Mapping (ORM) and Hibernate framework architecture.",
+    "examples": "### 1. The ORM Problem\nJava represents data using **Objects** (with relationships, inheritance, polymorphism). Relational databases represent data using **Tables** (with foreign keys, rows, columns). This difference is called the **Object-Relational Impedance Mismatch**.\n*   **ORM (Object-Relational Mapping)**: A technology that maps Java objects directly to database tables, eliminating JDBC boilerplate code.\n\n---\n\n### 2. What is Hibernate?\nHibernate is a high-performance ORM framework that implements the Java Persistence API (JPA) specification.\n\n---\n\n### 3. Hibernate Architecture\n*   **SessionFactory**: A heavy, thread-safe factory class that compiles database configurations and spawns Sessions. Created once during application startup.\n*   **Session**: A light, non-thread-safe object representing a database transaction. Interacts directly with the database.\n*   **Transaction**: Manages transaction boundaries (commit, rollback).",
+    "summary": "Hibernate is an ORM framework that maps Java objects to relational database tables, resolving impedance mismatches and eliminating JDBC boilerplate.",
+    "id": 120
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 2: Configuration",
+    "description": "Hibernate configuration strategies: hibernate.cfg.xml, application.properties, SessionFactory, and Sessions.",
+    "examples": "### 1. Configuration Approaches\n*   **XML Configuration (`hibernate.cfg.xml`)**: Legacy configuration defining driver class, URL, and mapping files.\n*   **Spring Boot properties (`application.properties`)**: Configures connection details and Hibernate properties automatically:\n    ```properties\n    spring.datasource.url=jdbc:mysql://localhost:3306/mydb\n    spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect\n    spring.jpa.hibernate.ddl-auto=update\n    ```\n\n---\n\n### 2. DDL Auto Modes\n`hibernate.hbm2ddl.auto` controls table generation strategies:\n*   `none`: No database schema modifications.\n*   `validate`: Verifies if entity definitions match the database schema.\n*   `update`: Updates database tables to match entity modifications.\n*   `create`: Drops existing tables and creates new tables on startup.\n*   `create-drop`: Drops tables on startup and again when the SessionFactory is closed.",
+    "summary": "Configure Hibernate properties in application.properties. Use validate or none in production to prevent data loss, and update in development.",
+    "id": 121
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 3: Entity Mapping",
+    "description": "Mapping classes to tables using annotations: Entity, Table, Id, GeneratedValue, and Column.",
+    "examples": "### 1. Basic Mapping Annotations\nMap a Java class to a database table using annotations:\n```java\n@Entity                // Marks the class as a JPA entity\n@Table(name = \"users\") // Maps entity to a specific database table\npublic class User {\n    @Id                // Defines the primary key column\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    @Column(name = \"full_name\", nullable = false)\n    private String name;\n\n    @Transient         // Excludes this field from database mapping\n    private String tempToken;\n\n    @Enumerated(EnumType.STRING) // Maps enum constant name as string\n    private RoleType role;\n}\n```\n\n---\n\n### 2. Java Time API support\nModern JPA supports standard Java time types (`LocalDate`, `LocalDateTime`, `Instant`) without requiring legacy `@Temporal` annotations.",
+    "summary": "Use @Entity and @Table to map classes to tables. Use @Id for primary keys, @Transient to ignore fields, and @Enumerated to map enum values.",
+    "id": 122
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 4: CRUD Operations",
+    "description": "Hibernate CRUD operations: persist, merge, update, and remove.",
+    "examples": "### 1. Operations Overview\n*   **persist() / save()**: Inserts a new entity instance into the database.\n*   **find()**: Retrieves an entity instance from the database using its primary key.\n*   **merge() / update()**: Syncs modifications made to a detached entity back to the database.\n*   **remove() / delete()**: Deletes an entity instance from the database.\n\n---\n\n### 2. save() vs. persist()\n*   `persist()`: Part of the JPA specification. Returns `void`. If executed outside a transaction, it does not execute SQL immediately.\n*   `save()`: Hibernate-specific legacy method. Returns the generated primary key (e.g. a `Long`). Executes an immediate SQL `INSERT` statement to retrieve the ID, even outside transaction boundaries.",
+    "summary": "persist() inserts new entity instances. save() is a legacy Hibernate method returning generated primary key IDs. Use persist() for standard JPA conformity.",
+    "id": 123
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 5: Entity States",
+    "description": "The four JPA entity lifecycle states: Transient, Persistent, Detached, and Removed.",
+    "examples": "### 1. Entity Lifecycle States\nAn entity transitions through four distinct states during its lifecycle:\n\n```\nNew/Transient --> persist() --> Persistent (Managed)\n                                     |\n                                 close() / detach()\n                                     |\n                                     v\nDetached <----- merge() ----- Detached (Unmanaged)\n   |\nremove()\n   |\n   v\nRemoved\n```\n\n---\n\n### 2. State Definitions\n*   **Transient**: The entity has been instantiated (`new User()`) but is not associated with a JPA Session, and has no primary key ID in the database.\n*   **Persistent (Managed)**: The entity has a primary key ID and is associated with an active JPA Session. Any changes made to fields are automatically synced to the database (dirty checking) when the transaction commits.\n*   **Detached**: The entity has a primary key ID but its Session has been closed. Modifications are not tracked.\n*   **Removed**: The entity is marked for deletion. The database row is deleted when the session flushed.",
+    "summary": "Transient objects are not tracked. Persistent objects are actively tracked by a Session; modifications are auto-saved. Detached entities are no longer tracked.",
+    "id": 124
+  },
+  {
+    "category": "spring_framework",
+    "title": "JDBC Module 12: Servlets Integration",
+    "description": "Integrating JDBC database access inside Servlet controllers to build standard MVC web layers.",
+    "examples": "### 1. JDBC inside Servlet Architecture\nA typical MVC web architecture uses Servlets as controllers, delegating database access to DAO (Data Access Object) classes executing JDBC operations:\n\n```\nClient HTTP Request -> Servlet (Controller) -> DAO Class -> JDBC Statement -> DB Table\n```\n\n---\n\n### 2. Code Implementation Example\nManage database sessions using context init hooks or DataSource references inside servlet methods:\n\n```java\n@WebServlet(\"/employees\")\npublic class EmployeeServlet extends HttpServlet {\n    private DataSource dataSource;\n\n    @Override\n    public void init() throws ServletException {\n        // Initialize DataSource connection pool (HikariCP / Tomcat pool)\n        try {\n            InitialContext ctx = new InitialContext();\n            dataSource = (DataSource) ctx.lookup(\"java:comp/env/jdbc/TestDB\");\n        } catch (NamingException e) {\n            throw new ServletException(e);\n        }\n    }\n\n    @Override\n    protected void doGet(HttpServletRequest request, HttpServletResponse response) \n            throws ServletException, IOException {\n        List<Employee> list = new ArrayList<>();\n        String sql = \"SELECT id, name, salary FROM employees\";\n        \n        try (Connection conn = dataSource.getConnection();\n             PreparedStatement pstmt = conn.prepareStatement(sql);\n             ResultSet rs = pstmt.executeQuery()) {\n            \n            while (rs.next()) {\n                list.add(new Employee(\n                    rs.getInt(\"id\"),\n                    rs.getString(\"name\"),\n                    rs.getDouble(\"salary\")\n                ));\n            }\n        } catch (SQLException e) {\n            throw new ServletException(e);\n        }\n        \n        request.setAttribute(\"employeesList\", list);\n        request.getRequestDispatcher(\"/employees.jsp\").forward(request, response);\n    }\n}\n```",
+    "summary": "Servlets act as controllers, calling DAO layers to run JDBC queries. Retrieve connections from a DataSource connection pool to maximize throughput.",
+    "id": 125
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 6: Primary Key Generation",
+    "description": "Primary key generation strategies: IDENTITY, SEQUENCE, TABLE, and UUID mapping.",
+    "examples": "### 1. Generation Strategies\nDefine primary key generation strategies using `@GeneratedValue`:\n*   **IDENTITY**: Relies on the database auto-increment column (e.g. `AUTO_INCREMENT` in MySQL). The database assigns the primary key ID.\n    *   *Flaw*: Requires executing the SQL `INSERT` statement immediately to retrieve the ID, which prevents Hibernate from batching inserts.\n*   **SEQUENCE**: Relies on a database sequence object (e.g., in PostgreSQL or Oracle) to generate IDs.\n    *   *Benefit*: Hibernate can pre-allocate blocks of IDs from the sequence, enabling insert batching.\n*   **TABLE**: Uses a dedicated database table to store and generate sequence values. Slow and rarely used.\n*   **UUID**: Generates a unique 128-bit identifier on the application side. Requires no database roundtrips.",
+    "summary": "IDENTITY relies on auto-increment columns but disables insert batching. SEQUENCE generates IDs using database sequence objects. UUID generates IDs on the application side.",
+    "id": 126
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 7: Relationships",
+    "description": "Mapping entity associations: One-to-One, One-to-Many, Many-to-One, and Many-to-Many.",
+    "examples": "### 1. One-to-Many & Many-to-One\nThe most common association. The table holding the foreign key acts as the `@ManyToOne` owner:\n```java\n@Entity\npublic class Employee {\n    @ManyToOne\n    @JoinColumn(name = \"dept_id\") // Maps the foreign key column\n    private Department department;\n}\n\n@Entity\npublic class Department {\n    @OneToMany(mappedBy = \"department\") // Marks bidirectional relationship\n    private List<Employee> employees;\n}\n```\n\n---\n\n### 2. Many-to-Many Mapping\nRequires a third table (join table) to map the relationships:\n```java\n@Entity\npublic class Student {\n    @ManyToMany\n    @JoinTable(\n        name = \"student_course\",\n        joinColumns = @JoinColumn(name = \"student_id\"),\n        inverseJoinColumns = @JoinColumn(name = \"course_id\")\n    )\n    private Set<Course> courses;\n}\n```",
+    "summary": "Many-to-One owns the relationship foreign key. Bidirectional relationships use mappedBy. Many-to-Many mappings require joint tables configured via @JoinTable.",
+    "id": 127
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 8: Fetching",
+    "description": "Lazy Loading vs Eager Loading, resolving the N+1 Query Problem using Join Fetch and Entity Graphs.",
+    "examples": "### 1. Fetch Types\n*   **LAZY**: Fields are loaded from the database only when accessed (e.g. calling `user.getOrders()`). Generates a proxy object placeholder.\n*   **EAGER**: Associated entities are loaded immediately along with the parent entity. Can cause major performance degradation if used carelessly.\n\n---\n\n### 2. The N+1 Query Problem\nOccurs when loading a list of parent entities also triggers individual queries to load child relationships for each parent:\n*   *Example*: Loading 100 employees (`1` query) triggers 100 queries to load their departments, resulting in `101` database calls.\n\n---\n\n### 3. Resolving the N+1 Problem\n*   **Fetch Join (JPQL)**: Retrieve parent and child entities in a single SQL query using an inner or outer join:\n    ```sql\n    SELECT e FROM Employee e JOIN FETCH e.department\n    ```\n*   **Entity Graph**: Define custom fetch templates using annotations:\n    ```java\n    @EntityGraph(attributePaths = {\"department\"})\n    ```",
+    "summary": "Lazy loading postpones retrieving associations. Eager loading retrieves associations immediately. Resolve the N+1 problem by retrieving parent and child entities in a single query using FETCH JOIN.",
+    "id": 128
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 9: Cascading",
+    "description": "JPA Cascade Types: PERSIST, MERGE, REMOVE, DETACH, REFRESH, and ALL.",
+    "examples": "### 1. What is Cascading?\nCascading propagates operations performed on a parent entity to its associated child entities:\n\n```java\n@Entity\npublic class Order {\n    @OneToMany(mappedBy = \"order\", cascade = CascadeType.ALL, orphanRemoval = true)\n    private List<OrderItem> items;\n}\n```\n\n---\n\n### 2. Cascade Types\n*   **PERSIST**: Saving a parent entity automatically saves all associated child entities.\n*   **MERGE**: Merging a parent entity merges all associated child entities.\n*   **REMOVE**: Deleting a parent entity deletes all associated child entities.\n*   **REFRESH**: Refreshing a parent entity refreshes all associated child entities.\n*   **ALL**: Propagates all cascading operations.\n*   **orphanRemoval = true**: Automatically deletes child database rows if they are removed from the parent's collection (e.g. calling `items.remove(0)`).",
+    "summary": "Cascading propagates operations from parent entities to child entities. Use orphanRemoval to delete children removed from parent collections.",
+    "id": 129
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 10: Query Language",
+    "description": "Comparing JPQL, HQL, Native SQL, and the type-safe Criteria API.",
+    "examples": "### 1. Query Strategies\n*   **JPQL (Java Persistence Query Language)**: The JPA standard query language. Operates on Java entities and fields rather than database tables.\n    ```sql\n    SELECT u FROM User u WHERE u.email = :email\n    ```\n*   **HQL (Hibernate Query Language)**: Hibernate's extension of JPQL, supporting additional features.\n*   **Native SQL**: Raw SQL queries executed directly on the database engine, bypassing entity mapping layers. Use when writing complex queries that use database-specific features.\n    ```java\n    session.createNativeQuery(\"SELECT * FROM raw_logs\", Log.class);\n    ```\n*   **Criteria API**: A type-safe, programmatic way to build dynamic queries, eliminating syntax errors at runtime.\n    ```java\n    CriteriaBuilder cb = entityManager.getCriteriaBuilder();\n    CriteriaQuery<User> query = cb.createQuery(User.class);\n    ```",
+    "summary": "JPQL/HQL query Java entities and fields. Native SQL runs raw database queries directly. Criteria API provides a type-safe way to build dynamic queries.",
+    "id": 130
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 11: Caching",
+    "description": "Understanding First-level (Session) vs Second-level (SessionFactory) caches, and Query Caching.",
+    "examples": "### 1. First-Level Cache (Session Cache)\n*   **Scope**: Bound to a single **Session** instance.\n*   **Behavior**: Enabled by default; cannot be disabled. If you retrieve the same entity multiple times in a single session, Hibernate returns the cached instance instead of querying the database again.\n\n---\n\n### 2. Second-Level Cache\n*   **Scope**: Shared across all sessions in the **SessionFactory**.\n*   **Behavior**: Disabled by default. Cache providers (e.g., Ehcache, Hazelcast) cache entities across different sessions to reduce database load.\n\n---\n\n### 3. Query Cache\nCaches query results instead of individual entities. Requires enabling second-level cache, and must be configured carefully since modifying any data in the target table invalidates the cached results.",
+    "summary": "First-level cache is bound to a single Session and is enabled by default. Second-level cache is shared across sessions and requires external providers.",
+    "id": 131
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 12: Locking",
+    "description": "Optimistic Locking with Version annotations, and Pessimistic Locking strategies.",
+    "examples": "### 1. Optimistic Locking\nOptimistic locking assumes conflicts are rare. If a conflict occurs, the transaction fails:\n*   **Implementation**: Add a `@Version` field to the entity:\n    ```java\n    @Version\n    private int version;\n    ```\n*   **How it works**: Every time a row is modified, the database increments its version number. If two transactions try to update the same row concurrently, the first transaction succeeds and increments the version number. The second transaction finds a mismatch and throws an `OptimisticLockException`.\n\n---\n\n### 2. Pessimistic Locking\nPessimistic locking locks rows until the transaction commits, blocking other connections:\n*   **PESSIMISTIC_READ**: Prevents other connections from updating or deleting rows.\n*   **PESSIMISTIC_WRITE**: Locks rows for both read and write operations (`SELECT ... FOR UPDATE`).",
+    "summary": "Optimistic locking detects conflicts using @Version fields. Pessimistic locking locks database rows directly, blocking other connections until transactions commit.",
+    "id": 132
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 13: Performance Tuning",
+    "description": "Optimizing Hibernate performance: batch updates, dirty checking, dynamic updates, and flush modes.",
+    "examples": "### 1. Dirty Checking & Dynamic Updates\n*   **Dirty Checking**: Hibernate automatically scans persistent entities when a transaction commits, generating SQL updates for any modified fields.\n*   **Dynamic Update**: By default, Hibernate updates all columns in a table during updates. Annotate the entity with `@DynamicUpdate` to update only the modified columns:\n    ```java\n    @Entity\n    @DynamicUpdate // Updates only changed columns\n    public class User {}\n    ```\n\n---\n\n### 2. Session Flush Modes\nFlush modes control when modifications are sent to the database:\n*   `FlushModeType.AUTO` (Default): Flushes modifications before executing queries to ensure consistency.\n*   `FlushModeType.COMMIT`: Flushes modifications only when the transaction commits.",
+    "summary": "Dirty checking detects modified entities. Use @DynamicUpdate to update only changed columns, and set appropriate flush modes to optimize performance.",
+    "id": 133
+  },
+  {
+    "category": "spring_framework",
+    "title": "Hibernate Module 14: Hibernate Interview Topics",
+    "description": "Answers to top Hibernate interview questions: save vs persist, update vs merge, and lazy loading exceptions.",
+    "examples": "### 1. Top Q&A\n*   **What is the difference between update() and merge()?**\n    *   `update()`: Moves a detached entity back to a persistent state. Throws an exception if another instance of the same entity is already persistent in the session.\n    *   `merge()`: Copies the properties of a detached entity to the persistent entity in the session, returning the persistent instance.\n*   **What causes a LazyInitializationException?** Thrown when trying to access a lazy relationship on a detached entity after its Session has been closed:\n    ```java\n    // Throws Exception:\n    session.close();\n    user.getOrders().size(); \n    ```\n*   **How does Hibernate Session Flush work?** Flushing sends SQL commands (insert, update, delete) to the database to sync entity states. It does not commit the transaction.",
+    "summary": "update() forces detached entities persistent. merge() copies detached properties to persistent entities. LazyInitializationException occurs when reading lazy fields after session closes.",
+    "id": 134
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Framework Module 1: Spring Basics",
+    "description": "Introduction to the Spring Framework, Inversion of Control (IoC), Dependency Injection, and the container.",
+    "examples": "### 1. Inversion of Control (IoC)\nIn standard programming, classes instantiate their dependencies directly. In Spring:\n*   **Inversion of Control**: The framework manages the lifecycle and instantiation of dependencies instead of the classes themselves.\n\n---\n\n### 2. Dependency Injection (DI)\nDependency Injection is the mechanism that implements IoC. Dependencies are injected into objects at runtime (via constructors or setter methods) rather than being created inside the class.\n\n---\n\n### 3. Spring Container\nThe Spring Container manages application components called **Beans**.\n*   **BeanFactory**: The basic container interface, loading beans lazily to save resources.\n*   **ApplicationContext**: Extends BeanFactory. Adds enterprise features like AOP, internationalization, and event publishing, loading all beans eagerly on startup.",
+    "summary": "IoC delegates component instantiation and management to the framework. Dependency Injection resolves class dependencies at runtime using the ApplicationContext container.",
+    "id": 135
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Framework Module 2: Bean Management",
+    "description": "Defining Spring Beans, scopes (Singleton, Prototype, Web Scopes), and configuration options.",
+    "examples": "### 1. What is a Spring Bean?\nA Bean is a Java object instantiated, assembled, and managed by the Spring Container.\n\n---\n\n### 2. Bean Scopes\nThe Spring Container supports six bean scopes:\n*   **Singleton (Default)**: Creates a single instance of the bean per container. Shared across all class references.\n*   **Prototype**: Creates a new instance of the bean every time it is requested.\n*   **Request (Web)**: Creates a new instance of the bean per HTTP request.\n*   **Session (Web)**: Creates a new instance of the bean per HTTP session.\n*   **Application (Web)**: Creates a single instance per ServletContext.\n*   **WebSocket**: Creates a single instance per WebSocket session.",
+    "summary": "Beans are Spring-managed Java objects. Singleton scope creates a single shared instance; Prototype scope creates a new instance on every request.",
+    "id": 136
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Framework Module 3: Dependency Injection",
+    "description": "Constructor injection vs Setter injection vs Field injection, and resolving beans using Qualifier and Primary annotations.",
+    "examples": "### 1. Injection Strategies\n*   **Constructor Injection (Recommended)**: Dependencies are passed to the class constructor. Guarantees that dependencies are not-null and makes testing easier:\n    ```java\n    @Autowired // Optional in modern Spring if class has a single constructor\n    public OrderService(OrderRepository repo) { this.repo = repo; }\n    ```\n*   **Setter Injection**: Dependencies are passed to setter methods. Useful for optional dependencies.\n*   **Field Injection**: Dependencies are injected directly into fields using reflection. Disapproved as it hides dependencies and makes testing difficult.\n\n---\n\n### 2. Resolving Ambiguous Beans\nIf multiple beans implement the same interface:\n*   **@Primary**: Marks a bean to be injected by default:\n    ```java\n    @Primary @Component public class FastService implements Service {}\n    ```\n*   **@Qualifier**: Specifies the name of the target bean to inject:\n    ```java\n    @Autowired @Qualifier(\"slowService\") private Service service;\n    ```",
+    "summary": "Constructor injection is recommended for mandatory dependencies. Resolve duplicate bean implementation ambiguities using @Primary or @Qualifier.",
+    "id": 137
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Framework Module 4: Bean Lifecycle",
+    "description": "Understanding bean initialization and destruction steps: PostConstruct, PreDestroy, and BeanPostProcessors.",
+    "examples": "### 1. Bean Lifecycle Sequence\nThe Spring Container manages bean lifecycles:\n\n```\nInstantiate Bean\n       |\nPopulate Properties (Dependency Injection)\n       |\nBeanNameAware / BeanFactoryAware checks\n       |\nBeanPostProcessor BeforeInitialization\n       |\n@PostConstruct Method Executed\n       |\nInitializingBean.afterPropertiesSet()\n       |\nCustom init-method\n       |\nBeanPostProcessor AfterInitialization\n       |\n[ Bean is Ready to Use ]\n       |\n@PreDestroy Method Executed (on Shutdown)\n       |\nDisposableBean.destroy()\n       |\nCustom destroy-method\n```\n\n---\n\n### 2. Lifecycle Annotations\n*   **@PostConstruct**: Runs once after dependency injection completes, useful for initializing configuration setups.\n*   **@PreDestroy**: Runs once before the bean is removed from the container, useful for releasing resources.",
+    "summary": "Bean lifecycle follows instantiation, property population, post-construct initialization, use phase, and pre-destroy cleanup.",
+    "id": 138
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Framework Module 5: Configuration",
+    "description": "Declaring beans using XML, Java classes, annotations, and configuring component scans.",
+    "examples": "### 1. Configuration Approaches\n*   **XML Configuration (Legacy)**: Bean configurations are defined in XML files using `<bean>` tags.\n*   **Java-Based Configuration (Modern)**: Configuration is defined in Java classes using annotations:\n    ```java\n    @Configuration\n    public class AppConfig {\n        @Bean // Registers the returned object as a Spring bean\n        public LogService logService() {\n            return new FileLogService();\n        }\n    }\n    ```\n\n---\n\n### 2. Component Scanning\nTells the Spring Container where to scan for annotated components (e.g. `@Component`, `@Service`):\n```java\n@Configuration\n@ComponentScan(basePackages = \"com.myapp\") // Scans for components\npublic class Config {}\n```",
+    "summary": "Use @Configuration and @Bean classes to declare beans programmatically. Use @ComponentScan to scan for components automatically.",
+    "id": 139
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Framework Module 6: Stereotype Annotations",
+    "description": "Understanding component annotations: Component, Service, Repository, Controller, and RestController.",
+    "examples": "### 1. Stereotype Mappings\nStereotype annotations are specialized versions of `@Component` that register classes as Spring beans:\n\n```\n                  @Component (Generic Bean)\n                      |\n        +-------------+-------------+\n        |             |             |\n    @Service     @Repository   @Controller\n  (Business)   (Data Access)   (Web Layer)\n                                    |\n                             @RestController\n                               (REST Web)\n```\n\n---\n\n### 2. Roles\n*   **@Component**: Generic stereotype annotation.\n*   **@Service**: Identifies service classes holding business logic.\n*   **@Repository**: Identifies DAO classes, enabling automatic database exception translation.\n*   **@Controller**: Identifies MVC controller classes returning HTML templates.\n*   **@RestController**: Combines `@Controller` and `@ResponseBody`. Returns data (e.g. JSON/XML) directly to the client instead of HTML templates.",
+    "summary": "@Component is the base annotation. @Service is for business logic, @Repository is for database access, and @RestController handles REST API requests.",
+    "id": 140
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Framework Module 7: Spring AOP",
+    "description": "Aspect-Oriented Programming principles: Aspects, Advices, Pointcuts, Join Points, and AOP proxy targets.",
+    "examples": "### 1. Why AOP?\nAOP separates cross-cutting concerns (e.g. logging, security, caching) from business logic to prevent code duplication.\n\n---\n\n### 2. Core Concepts\n*   **Aspect**: A module containing cross-cutting logic.\n*   **Advice**: The action taken by an aspect (when to execute code).\n*   **Join Point**: A point during program execution (e.g., method execution) where an advice can be applied.\n*   **Pointcut**: An expression that matches target Join Points:\n    ```java\n    @Before(\"execution(* com.service.*.*(..))\") // Runs before target methods\n    public void logBefore() { System.out.println(\"Method called\"); }\n    ```\n\n---\n\n### 3. Advice Types\n*   `@Before`: Runs before the target method.\n*   `@After`: Runs after the target method completes.\n*   `@AfterReturning`: Runs after the method returns successfully.\n*   `@AfterThrowing`: Runs if the method throws an exception.\n*   `@Around`: Wraps target methods, controlling execution and return values.",
+    "summary": "AOP modularizes cross-cutting concerns. Advices define when to run code (before, after, around method calls) based on Pointcut expressions.",
+    "id": 141
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Framework Module 8: Spring MVC",
+    "description": "Understanding Spring MVC architecture, the DispatcherServlet request flow, and controllers.",
+    "examples": "### 1. DispatcherServlet Execution Flow\nSpring MVC uses a Central Front Controller pattern to handle requests:\n\n```\nClient Request -> DispatcherServlet\n                       |\n             HandlerMapping (Finds Controller)\n                       |\n             HandlerAdapter (Invokes Controller)\n                       |\n           Controller Method executes --> returns Model & View\n                       |\n             ViewResolver (Resolves View name)\n                       |\n             View Engine compiles --> Client Response\n```\n\n---\n\n### 2. Key Components\n*   **DispatcherServlet**: The front controller that receives and dispatches all incoming HTTP requests.\n*   **HandlerMapping**: Matches incoming URLs to corresponding controllers.\n*   **ViewResolver**: Maps view names returned by controllers to actual template files (e.g., Thymeleaf templates).",
+    "summary": "DispatcherServlet acts as the central controller, mapping requests to handler methods, resolving view templates, and returning responses.",
+    "id": 142
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Framework Module 9: Validation",
+    "description": "Standard Bean Validation API, @Valid vs @Validated, and building custom validators.",
+    "examples": "### 1. Declaring Input Constraints\nJPA Bean Validation defines constraints directly in entity classes:\n```java\npublic class User {\n    @NotNull(message = \"Username cannot be null\")\n    private String username;\n\n    @Email(message = \"Invalid email format\")\n    private String email;\n\n    @Size(min = 8, max = 20)\n    private String password;\n}\n```\n\n---\n\n### 2. Validation Execution\nTrigger validation checks inside controller methods:\n*   **@Valid**: Standard JSR-380 annotation.\n*   **@Validated**: Spring-specific annotation supporting group validation rules:\n\n```java\n@PostMapping(\"/register\")\npublic ResponseEntity<?> registerUser(@Valid @RequestBody User user) {\n    return ResponseEntity.ok(\"Valid\");\n}\n```",
+    "summary": "Define input constraints in entities using validation annotations. Trigger validation inside controllers using @Valid or @Validated.",
+    "id": 143
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Framework Module 10: Transactions",
+    "description": "Spring declarative transaction management, Transactional configurations, propagation rules, and rollback constraints.",
+    "examples": "### 1. Declarative Transactions\nSpring handles transactions using the `@Transactional` annotation:\n```java\n@Transactional\npublic void processPayment(Order order) {\n    orderRepo.save(order);\n    paymentService.charge(order);\n}\n```\n\n---\n\n### 2. Transaction Propagation Types\n*   **REQUIRED (Default)**: Executes inside an active transaction. Creates a new transaction if none exists.\n*   **REQUIRES_NEW**: Suspends the active transaction and creates a new independent transaction.\n*   **SUPPORTS**: Runs inside an active transaction if one exists. Otherwise, runs without a transaction.\n*   **MANDATORY**: Requires an active transaction. Throws an exception if none exists.\n\n---\n\n### 3. Rollback Rules\nBy default, Spring transactions roll back only on **unchecked exceptions** (`RuntimeException`, `Error`). Checked exceptions do not trigger rollbacks unless specified:\n```java\n@Transactional(rollbackFor = CustomCheckedException.class)\n```",
+    "summary": "Use @Transactional to manage transactions automatically. REQUIRED is the default propagation type. Transactions rollback on unchecked exceptions by default.",
+    "id": 144
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Framework Module 11: Spring Interview Topics",
+    "description": "Answers to top Spring interview questions: IoC vs DI, circular dependencies, and Component vs Bean.",
+    "examples": "### 1. Top Q&A\n*   **What is the difference between IoC and DI?** Inversion of Control (IoC) is the design principle that delegates object creation and lifecycle management to the framework. Dependency Injection (DI) is the design pattern that implements IoC.\n*   **What is the difference between @Component and @Bean?**\n    *   `@Component`: Class-level annotation. Spring registers the class as a bean automatically using component scanning.\n    *   `@Bean`: Method-level annotation used inside `@Configuration` classes. Registers the returned object as a bean, useful for configuring third-party libraries.\n*   **What is a Circular Dependency?** Occurs when Bean A depends on Bean B, and Bean B depends on Bean A. The container fails to instantiate the beans on startup.\n    *   *Solution*: Redesign classes to eliminate circular paths, or use lazy loading (`@Lazy`) to break the initialization loop.",
+    "summary": "DI is the pattern implementing the IoC principle. Use @Component for class scanning, and @Bean inside configuration classes to register custom beans.",
+    "id": 145
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Boot Module 1: Spring Boot Basics",
+    "description": "Introduction to Spring Boot: auto-configuration, starters, and embedded servlet engines.",
+    "examples": "### 1. Why Spring Boot?\nStandard Spring applications require extensive configuration (XML schemas, DispatcherServlet setups, external Tomcat deployment).\n*   **Spring Boot**: Simplifies Spring application setup by offering auto-configuration, starter dependencies, and embedded servers, creating standalone production-ready applications.\n\n---\n\n### 2. Core Spring Boot Features\n*   **Starter Dependencies**: Standard dependency descriptors that group common libraries (e.g. `spring-boot-starter-web`).\n*   **Auto-Configuration**: Spring Boot scans project dependencies on startup, automatically configuring beans based on classpath libraries.\n*   **Embedded Server**: Includes an embedded web server (Tomcat, Jetty), allowing applications to run directly from JAR files using `java -jar` commands.",
+    "summary": "Spring Boot simplifies Spring development. It offers starter projects, auto-configures project dependencies, and runs on an embedded web server (Tomcat).",
+    "id": 146
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Boot Module 2: Boot Architecture",
+    "description": "Inside Spring Boot: the @SpringBootApplication annotation, SpringApplication execution flow, and configuration setups.",
+    "examples": "### 1. Entry Point Annotation\n`@SpringBootApplication` is a meta-annotation that combines three core annotations:\n*   `@SpringBootConfiguration`: Marks the class as a configuration class.\n*   `@EnableAutoConfiguration`: Enables Spring Boot auto-configuration.\n*   `@ComponentScan`: Scans for annotated components in the current package and its subpackages.\n\n```java\n@SpringBootApplication // Combines auto-configuration and component scanning\npublic class Application {\n    public static void main(String[] args) {\n        SpringApplication.run(Application.class, args); // Launches application\n    }\n}\n```\n\n---\n\n### 2. Startup Execution Steps\n1.  **Environment Preparation**: Prepares configurations and profiles.\n2.  **ApplicationContext Creation**: Instantiates the Spring container.\n3.  **Auto-Configuration Execution**: Scans project dependencies, instantiating required beans.\n4.  **Embedded Tomcat Launch**: Starts the embedded server on the configured port.",
+    "summary": "@SpringBootApplication enables auto-configuration and component scanning. SpringApplication.run() initializes the container and launches embedded Tomcat.",
+    "id": 147
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Boot Module 3: REST API Controllers",
+    "description": "Building REST endpoints: RestController annotations, RequestMapping, and HTTP operations.",
+    "examples": "### 1. REST Controllers\n`@RestController` registers a class as a REST endpoint. It is a convenience annotation that combines `@Controller` and `@ResponseBody`, returning response data directly to the client as JSON:\n\n```java\n@RestController\n@RequestMapping(\"/api/users\") // Base mapping URL path\npublic class UserController {\n    \n    @GetMapping // Maps HTTP GET requests\n    public List<User> getUsers() { return userService.findAll(); }\n\n    @PostMapping // Maps HTTP POST requests\n    public User createUser(@RequestBody User user) {\n        return userService.save(user);\n    }\n}\n```\n\n---\n\n### 2. Request Mapping Annotations\n*   `@GetMapping`: Retrieves resources.\n*   `@PostMapping`: Creates resources.\n*   `@PutMapping`: Replaces or updates resources.\n*   `@DeleteMapping`: Deletes resources.\n*   `@PatchMapping`: Applies partial resource updates.",
+    "summary": "@RestController returns response data directly to the client as JSON. Map HTTP requests to methods using @GetMapping, @PostMapping, etc.",
+    "id": 148
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Boot Module 4: Request Parameter Mapping",
+    "description": "Mapping client input variables: PathVariables, RequestParams, RequestHeaders, and RequestBodies.",
+    "examples": "### 1. Read Request Parameter Annotations\nSpring Boot maps request inputs to method parameters using annotations:\n*   **@PathVariable**: Maps parameters from dynamic URL path segments:\n    ```java\n    @GetMapping(\"/{id}\")\n    public User getUser(@PathVariable Long id) {} // Maps URL path ID variable\n    ```\n*   **@RequestParam**: Maps parameters from URL query parameters:\n    ```java\n    @GetMapping // Matches URL query parameters e.g. ?page=2\n    public List<User> getPage(@RequestParam(defaultValue = \"0\") int page) {}\n    ```\n*   **@RequestBody**: Maps the HTTP request body to a Java object:\n    ```java\n    @PostMapping\n    public User saveUser(@RequestBody User user) {} // Maps JSON body to entity\n    ```\n*   **@RequestHeader**: Maps header values to variables:\n    ```java\n    @GetMapping(\"/secure\")\n    public String secure(@RequestHeader(\"Authorization\") String token) {}\n    ```",
+    "summary": "Use @PathVariable to read values from URL paths, @RequestParam to read query parameters, and @RequestBody to read HTTP JSON request bodies.",
+    "id": 149
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Boot Module 5: Response Management",
+    "description": "Managing responses using ResponseEntity and custom HTTP status codes, and handling global exceptions.",
+    "examples": "### 1. ResponseEntity Wrapper\n`ResponseEntity` represents the complete HTTP response, letting you configure headers, status codes, and the response body:\n```java\n@GetMapping(\"/{id}\")\npublic ResponseEntity<User> getUser(@PathVariable Long id) {\n    User user = userService.findById(id);\n    return ResponseEntity.status(HttpStatus.OK).body(user); // Returns HTTP 200\n}\n```\n\n---\n\n### 2. Global Exception Handling\nHandle application exceptions globally using `@ControllerAdvice` and `@ExceptionHandler` annotations to return consistent error structures:\n```java\n@ControllerAdvice // Intercepts exceptions thrown by controllers\npublic class GlobalExceptionHandler {\n    \n    @ExceptionHandler(UserNotFoundException.class)\n    public ResponseEntity<ErrorDetails> handleUserNotFound(UserNotFoundException ex) {\n        ErrorDetails error = new ErrorDetails(new Date(), ex.getMessage());\n        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND); // Returns HTTP 404\n    }\n}\n```",
+    "summary": "Use ResponseEntity to customize HTTP responses. Intercept and handle controller exceptions globally using @ControllerAdvice classes.",
+    "id": 150
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Boot Module 6: Spring Data JPA",
+    "description": "Spring Data JPA repositories, derived query methods, and writing custom @Query operations.",
+    "examples": "### 1. JpaRepository Interfaces\n`JpaRepository` provides built-in CRUD operations, eliminating repository implementation boilerplate code:\n```java\n@Repository\npublic interface UserRepository extends JpaRepository<User, Long> {\n    // Inherits save(), findById(), deleteById(), etc.\n}\n```\n\n---\n\n### 2. Derived Query Methods\nSpring Data JPA automatically compiles SQL queries based on repository method names:\n```java\n// Spring compiles query: SELECT * FROM users WHERE email = ?\nOptional<User> findByEmail(String email);\n\n// Spring compiles query: SELECT * FROM users WHERE status = ? AND role = ?\nList<User> findByStatusAndRole(int status, String role);\n```\n\n---\n\n### 3. Custom Query Operations\nWrite custom queries using `@Query`:\n*   *JPQL/HQL*: `@Query(\"SELECT u FROM User u WHERE u.age > :age\")`\n*   *Native SQL*: `@Query(value = \"SELECT * FROM users WHERE raw_status = ?1\", nativeQuery = true)`",
+    "summary": "JpaRepository provides default CRUD methods. Dynamic queries are generated from method names. Use @Query to write custom JPQL or Native SQL queries.",
+    "id": 151
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Boot Module 7: Validation",
+    "description": "Input request validation, mapping constraints, and handling ValidationExceptions.",
+    "examples": "### 1. Annotating Input Models\nAnnotate input models with validation constraints:\n```java\npublic class RegisterRequest {\n    @NotBlank(message = \"Username is mandatory\")\n    private String username;\n\n    @Email(message = \"Email must be valid\")\n    private String email;\n}\n```\n\n---\n\n### 2. Handling Validation Errors\nIf validation fails, Spring Boot throws a `MethodArgumentNotValidException`. Intercept this exception in a global handler to return a structured list of errors back to the client:\n```java\n@ExceptionHandler(MethodArgumentNotValidException.class)\npublic ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {\n    Map<String, String> errors = new HashMap<>();\n    ex.getBindingResult().getFieldErrors().forEach(error -> \n        errors.put(error.getField(), error.getDefaultMessage())\n    );\n    return ResponseEntity.badRequest().body(errors); // Returns HTTP 400 with errors\n}\n```",
+    "summary": "Validate request inputs by annotating models. Intercept MethodArgumentNotValidException to return custom validation error messages.",
+    "id": 152
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Boot Module 8: Configuration",
+    "description": "Properties and YAML configurations, active profiles, and mapping configurations using ConfigurationProperties.",
+    "examples": "### 1. properties vs. yaml\nSpring Boot supports both properties and YAML configurations:\n```yaml\n# application.yml\nserver:\n  port: 8081\nspring:\n  profiles:\n    active: dev # Activates development profile configuration\n```\n\n---\n\n### 2. Active Profiles\nSeparate configurations for different environments (e.g. dev, prod) using profile files:\n*   `application-dev.properties` (Development database URL).\n*   `application-prod.properties` (Production database URL).\n\n---\n\n### 3. @ConfigurationProperties\nMap structured configurations to Java classes:\n```java\n@Component\n@ConfigurationProperties(prefix = \"app.security\")\npublic class SecurityConfig {\n    private String tokenSecret;\n    private int tokenValiditySeconds;\n    // Getters and setters\n}\n```",
+    "summary": "Configure applications using properties or YAML. Manage environment-specific configurations using Profiles. Map configurations to classes using @ConfigurationProperties.",
+    "id": 153
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Boot Module 9: Security",
+    "description": "Spring Security architecture: authentication, authorization, filters, and configuring CORS and CSRF.",
+    "examples": "### 1. Spring Security Architecture\nSpring Security uses a chain of servlet filters (SecurityFilterChain) to secure endpoints:\n\n```\nRequest -> Filter 1 -> Filter 2 -> UsernamePasswordAuthenticationFilter -> Controller\n```\n\n---\n\n### 2. CORS vs. CSRF\n*   **CORS (Cross-Origin Resource Sharing)**: Configures which external domains are allowed to access resources.\n*   **CSRF (Cross-Site Request Forgery)**: Protects against unauthorized commands originating from trusted users. Enabled by default; stateless APIs using JWT typically disable CSRF.\n\n---\n\n### 3. Configuration Class Example\n```java\n@Configuration\n@EnableWebSecurity\npublic class SecurityConfig {\n    @Bean\n    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {\n        http\n            .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless APIs\n            .authorizeHttpRequests(auth -> auth\n                .requestMatchers(\"/api/public/**\").permitAll() // Public paths\n                .anyRequest().authenticated()                  // Secure other paths\n            );\n        return http.build();\n    }\n}\n```",
+    "summary": "Spring Security secures endpoints using a Filter Chain. Enable CORS to support cross-origin requests, and configure endpoint permissions.",
+    "id": 154
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Boot Module 10: Microservices",
+    "description": "Spring Cloud components: service discovery, API gateways, routing client queries, and resilience patterns.",
+    "examples": "### 1. Service Registration & Discovery (Eureka)\nMicroservices scale dynamically. Spawning multiple service instances makes hardcoding IP addresses impossible.\n*   **Eureka Server**: Acts as a central directory. Instances register their locations automatically on startup.\n*   **Eureka Client**: Resolves target instance locations dynamically from the Eureka server.\n\n---\n\n### 2. API Gateway\nActs as a single entry point for all client requests, routing them to target backend services. Handles cross-cutting concerns like security, rate limiting, and CORS headers.\n\n---\n\n### 3. OpenFeign & Circuit Breakers (Resilience4j)\n*   **OpenFeign**: Generates HTTP client implementations dynamically based on interface declarations.\n*   **Circuit Breakers**: Stops calling failing services temporarily to prevent cascading failures.\n    ```java\n    @FeignClient(name = \"user-service\")\n    public interface UserClient {\n        @GetMapping(\"/users/{id}\")\n        @CircuitBreaker(name = \"userServiceBreaker\", fallbackMethod = \"fallback\")\n        User getUser(@PathVariable Long id);\n    }\n    ```",
+    "summary": "Eureka manages service instances. API Gateway routes client requests. OpenFeign handles inter-service communication. Circuit Breakers prevent cascading failures.",
+    "id": 155
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Boot Module 11: Testing",
+    "description": "Unit testing and integration testing in Spring Boot: Mockito, MockMvc, and test annotations.",
+    "examples": "### 1. Test Configurations\n*   **@SpringBootTest**: Loads the complete ApplicationContext for integration tests.\n*   **@WebMvcTest**: Loads only the web layer (controllers). Speeds up controller testing by mock-wiring database layers.\n*   **@DataJpaTest**: Loads only database layers (repositories), running tests inside a rollback transaction.\n\n---\n\n### 2. Mocking using Mockito & MockMvc\nMock dependencies and perform requests using MockMvc:\n```java\n@ExtendWith(MockitoExtension.class)\npublic class UserServiceTest {\n    @Mock private UserRepository repo; // Mocks repository\n    @InjectMocks private UserService service; // Injects mock repository\n}\n\n@WebMvcTest(UserController.class)\npublic class ControllerTest {\n    @Autowired private MockMvc mockMvc;\n    \n    @Test\n    public void testGetUsers() throws Exception {\n        mockMvc.perform(get(\"/api/users\"))\n            .andExpect(status().isOk())\n            .andExpect(jsonPath(\"$.size()\").value(2));\n    }\n}\n```",
+    "summary": "Use @SpringBootTest for integration tests, @WebMvcTest to test web controllers with MockMvc, and Mockito to mock service dependencies.",
+    "id": 156
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Boot Module 12: Monitoring",
+    "description": "Spring Boot Actuator endpoints, health checks, custom metrics, and Prometheus and Grafana integration.",
+    "examples": "### 1. Spring Boot Actuator\nProvides built-in endpoints to monitor and interact with running applications:\n*   `/actuator/health`: Displays application health status (UP, DOWN).\n*   `/actuator/metrics`: Displays system metrics like memory usage and database connections.\n*   `/actuator/env`: Displays active properties configuration settings.\n\n---\n\n### 2. Prometheus & Grafana Integration\nIntegrate third-party monitoring platforms to collect and visualize metrics:\n1.  **Micrometer**: Acts as a facade wrapper. Translates Spring metrics format to Prometheus format:\n    ```properties\n    management.endpoints.web.exposure.include=health,info,prometheus\n    ```\n2.  **Prometheus**: Periodically scrapes the `/actuator/prometheus` endpoint, saving metrics data.\n3.  **Grafana**: Queries Prometheus database records, displaying real-time system performance dashboards.",
+    "summary": "Actuator exposes application health and system metrics. Use Micrometer to format metrics for Prometheus, and visualize them using Grafana dashboards.",
+    "id": 157
+  },
+  {
+    "category": "spring_framework",
+    "title": "Spring Boot Module 13: Spring Boot Interview Topics",
+    "description": "Answers to top Spring Boot interview questions: Spring vs Boot, DispatcherServlet flow, and profiles.",
+    "examples": "### 1. Top Q&A\n*   **What is the difference between Spring and Spring Boot?** Spring is a framework providing dependency injection and core enterprise features. It requires manual configuration. Spring Boot is an extension of Spring that provides starter projects, auto-configuration, and embedded servers, simplifying application setup.\n*   **How does Spring Boot Auto-Configuration work?** On startup, Spring Boot scans the classpath for libraries. It uses `@ConditionalOnClass` or `@ConditionalOnMissingBean` annotations to instantiate required beans automatically (e.g. configuring a DataSource bean if a database driver is present).\n*   **How do you configure database configurations for dev and prod environments?** Use Spring Profiles. Create profile-specific configuration files: `application-dev.yml` and `application-prod.yml`. Activate the target profile at runtime using parameter commands:\n    ```bash\n    java -jar app.jar --spring.profiles.active=prod\n    ```",
+    "summary": "Spring Boot extends Spring by adding auto-configuration and embedded servers. Use active Profiles to manage environment-specific configurations.",
+    "id": 158
+  },
+  {
+    "id": 159,
     "category": "microservices",
     "title": "Microservices Architecture & REST API",
     "description": "Microservices decompose monolithic programs into bounded context services with independent databases. Distributed communication employs REST HTTP endpoints or Kafka events coordinated via API Gateways, Service Discovery registries, and Saga eventual consistency workflows.",
