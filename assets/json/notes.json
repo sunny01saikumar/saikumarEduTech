@@ -496,15 +496,287 @@
     "id": 62
   },
   {
-    "id": 63,
     "category": "jvm_internals",
-    "title": "JVM Memory & Garbage Collection",
-    "description": "The JVM runs Java bytecode on host platforms, partitioning runtime areas into stack frames, heaps, registers, and metaspace templates. Garbage Collection employs tracing reachability paths from GC roots to compact, sweep, and recycle memory.",
-    "examples": "### 1. JVM Architecture & Compile Process\nJava achieves **Write Once, Run Anywhere (WORA)** by abstracting hardware interactions via bytecode (.class) running inside the JVM.\n\n```mermaid\ngraph TD\n    classLoader[\"Class Loader\"]\n    runtimeData[\"Runtime Data Areas (Heap, Stack, Metaspace, etc.)\"]\n    executionEngine[\"Execution Engine (Interpreter, JIT, GC)\"]\n    nativeInterface[\"Java Native Interface (JNI)\"]\n    nativeLibs[\"Native Libraries\"]\n\n    classLoader --> runtimeData\n    runtimeData <--> executionEngine\n    executionEngine <--> nativeInterface\n    nativeInterface <--> nativeLibs\n```\n\n---\n\n### 2. Runtime Data Areas\n1. **Heap Memory**: Stores objects and arrays dynamically. Heap is shared among threads and divided into Generational zones (Eden, S0, S1, Old Gen) to optimize garbage collection efficiency.\n2. **Stack Memory**: Thread-specific execution frames. Stores method execution state, local variables, and object references pointing to Heap memory.\n3. **Method Area (Metaspace)**: Stores class metadata, bytecode, runtime constant pools, and static fields. Replaced PermGen in Java 8 and resides in native memory.\n4. **PC Register**: Tracks the execution instruction address of the thread.\n5. **Native Method Stack**: Supports native library execution (C++/JNI).\n\n```java\n// Reference vs Object allocation:\nvoid run() {\n    Employee emp = new Employee(\"Sunny\");\n    // 'emp' (reference variable) is stored in the Stack Frame\n    // 'new Employee(\"Sunny\")' (object payload) is allocated in the Heap\n}\n```\n\n---\n\n### 3. Generational Heap Layout\nMost objects die young. Therefore, JVM divides Heap memory to handle objects based on their lifespans:\n\n```mermaid\ngantt\n    title Heap Memory Layout\n    dateFormat  X\n    axisFormat %s\n    section Young Generation\n    Eden (New Objects) : active, 0, 4\n    Survivor S0 (Tenured temporary) : 4, 5\n    Survivor S1 (Tenured temporary) : 5, 6\n    section Old Generation\n    Old Gen (Long-lived, Cache, Config) : crit, 6, 12\n```\n\n1. **Eden**: Where new objects are allocated initially. When full, a **Minor GC** occurs.\n2. **Survivor Spaces (S0 / S1)**: Hold objects surviving Minor GC. They alternate roles, copying survivors between each other while incrementing age tags.\n3. **Old Generation**: Stores long-lived objects (e.g., Singletons, Caches, Beans) once their age tags hit a threshold (default 15). Collected via a **Major / Full GC**.\n\n---\n\n### 4. Garbage Collection reachability & GC Roots\nJVM determines what to collect using **Reachability Analysis** starting from **GC Roots**. Unreachable objects are marked as garbage.\n\n**Typical GC Roots:**\n*   Local variables in active thread stack frames.\n*   System classes and Static variables.\n*   Active thread reference hooks.\n*   JNI (native) references.\n\n---\n\n### 5. Core GC Algorithms\n1. **Mark-and-Sweep**: Marks reachable objects, then sweeps through memory releasing unmarked ones. Can cause memory fragmentation.\n2. **Mark-Compact**: Marks survivors and compacts them into contiguous memory segments, eliminating fragmentation.\n3. **Copying Collection**: Copies live objects from one memory block (e.g., From-Space) to another (To-Space), discarding dead objects instantly. High speed but requires double buffer allocations.\n\n---\n\n### 6. Modern Garbage Collectors\n*   **Serial GC**: Single-threaded GC. Pauses all application threads (Stop-The-World).\n*   **Parallel GC**: Multi-threaded young/old collection, optimized for high throughput.\n*   **G1 GC (Garbage-First)**: Divides heap into independent regions and collects regions with the most reclaimable space first. Targets predictable low pause times.\n*   **ZGC / Shenandoah**: Ultra-low pause collectors doing almost all allocation tracing and compaction concurrently with active threads. Keep pauses to milliseconds even on massive multi-terabyte heaps.",
-    "summary": "Understand Stack frames for method execution context, Heap segments (Eden, Survivors, Old Gen) for object lifecycle divisions, GC Roots for reachability trace origins, and G1/ZGC low latency concurrent sweeps."
+    "title": "Module 1: Java Platform Fundamentals",
+    "description": "Introduction to Java platform architecture, the ecosystem components (JDK, JRE, JVM), the compilation execution workflow, and WORA.",
+    "examples": "### 1. Java Platform Components\n*   **JDK (Java Development Kit)**: Contains development tools like `javac` compiler and `jar` archiver, plus JRE.\n*   **JRE (Java Runtime Environment)**: Contains the JVM and runtime libraries required to execute Java apps.\n*   **JVM (Java Virtual Machine)**: The core engine that loads, verifies, compiles, and executes bytecode instructions.\n\n---\n\n### 2. Compilation and Execution Process\nJava utilizes a two-step execution workflow:\n1.  **Compile-time**: Source code (`.java` file) is compiled by `javac` into intermediate, platform-independent Bytecode (`.class` file).\n2.  **Runtime**: JVM loads the bytecode class files and interprets or JIT-compiles them to native operating system machine code.\n\n```\nSource (.java) --> javac Compiler --> Bytecode (.class) --> JVM (Execution Engine) --> OS Binary\n```\n\n---\n\n### 3. Write Once, Run Anywhere (WORA)\nBecause bytecode is platform-independent, a compiled class file can run on any device that has a compatible JVM wrapper installed. The JVM abstracts host operating system hardware configurations.",
+    "summary": "JDK contains development tools and JRE; JRE contains JVM and libraries. Platform independence is achieved by compiling code to intermediate bytecode, executed inside host-specific JVMs.",
+    "id": 63
   },
   {
-    "id": 64,
+    "category": "jvm_internals",
+    "title": "Module 2: JVM Architecture",
+    "description": "High-level overview of internal JVM components, including Class Loader, Runtime Memory, Execution Engine, and Native Interfaces.",
+    "examples": "### 1. JVM Architecture Components\nThe JVM execution runtime consists of four primary subsystems:\n\n```\n+-----------------------------------------------------------------+\n| Class Loader Subsystem (Loading, Linking, Initialization)       |\n+-----------------------------------------------------------------+\n| Runtime Data Areas (Heap, Stack, Method Area, PC, Native Stack) |\n+-----------------------------------------------------------------+\n| Execution Engine (Interpreter, JIT Compiler, Garbage Collector) |\n+-----------------------------------------------------------------+\n| Java Native Interface (JNI) & Native Method Libraries           |\n+-----------------------------------------------------------------+\n```\n\n---\n\n### 2. Primary Subsystem Roles\n*   **Class Loader**: Finds, loads, and initializes class definition templates.\n*   **Runtime Memory**: Stores runtime data, objects, local variables, and static definitions.\n*   **Execution Engine**: Translates bytecode instructions into native OS operations using an Interpreter and JIT compiler, and automatically reclaims heap space via the Garbage Collector.\n*   **JNI**: Integrates with native platforms to run APIs written in C or C++.",
+    "summary": "JVM has four primary subsystems: Class Loader (metadata loader), Runtime Data Areas (memory holders), Execution Engine (bytecode executor), and JNI native bridges.",
+    "id": 64
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 3: Class Loader Subsystem",
+    "description": "Class Loading phases (Loading, Linking, Initialization), class loader delegation models, and common loading errors.",
+    "examples": "### 1. Class Loading Lifecycle\nClass loading operates in three strict sequential phases:\n1.  **Loading**: Reads byte stream of `.class` files into JVM method memory.\n2.  **Linking**:\n    *   *Verification*: Ensures bytecode matches JVM specifications and contains no malicious instructions.\n    *   *Preparation*: Allocates static fields memory and initializes them to default variables (e.g. `0`, `null`).\n    *   *Resolution*: Resolves symbolic method/class references into actual memory addresses.\n3.  **Initialization**: Executes static blocks and assigns actual values to static variables.\n\n---\n\n### 2. Class Loader Types & Delegation Model\nJVM uses three built-in class loaders following a hierarchical tree:\n\n```\nBootstrap ClassLoader (Loads Core JDK, rt.jar)\n       ^\nPlatform ClassLoader (Loads security extension libraries)\n       ^\nApplication ClassLoader (Loads developer classpath classes)\n```\n\n**Parent Delegation Model**: A class loader always delegates searching requests up to its parent loader first. It only tries to load the class itself if the parent chain fails to locate it. This prevents user classes from replacing core JVM code.\n\n---\n\n### 3. Common Errors\n*   **ClassNotFoundException**: Thrown when reflection APIs try to load a class string name that does not exist in the classpath.\n*   **NoClassDefFoundError**: A runtime compilation error. Occurs when a class existed during compile-time, but cannot be located at runtime.",
+    "summary": "Loading parses bytecodes; Linking verifies and prepares metadata; Initialization executes static values. Parent delegation ensures system class integrity.",
+    "id": 65
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 4: Runtime Data Areas",
+    "description": "General overview of runtime memory zones, distinguishing between thread-shared and thread-private partitions.",
+    "examples": "### 1. JVM Memory Partitions\nThe JVM runtime data memory area is divided into 5 distinct zones:\n\n```\n+------------------------------------+------------------------------------+\n| Shared Memory Areas (All Threads)  | Private Memory Areas (Per-Thread)  |\n+------------------------------------+------------------------------------+\n| Heap Memory (Objects & Instances)  | Stack Memory (Stack frames, vars)  |\n| Method Area/Metaspace (Metadata)   | PC Register (Next instruction ptr) |\n|                                    | Native Method Stack (Native code)  |\n+------------------------------------+------------------------------------+\n```\n\n---\n\n### 2. Thread-Shared Memory\n*   **Heap Memory**: Dynamic memory allocations for all objects and instance fields.\n*   **Method Area / Metaspace**: Class metadata structures, static values, constant pools, and method bytecode.\n\n---\n\n### 3. Thread-Private Memory (Per Thread)\n*   **JVM Stack**: Holds executing method frames, local variables, and references.\n*   **PC Register**: Tracks bytecode instruction address currently executing.\n*   **Native Stack**: Executes operations written in C/C++ via JNI.",
+    "summary": "Heap and Method Area are shared across all active threads. Stack, PC Register, and Native Stack are allocated privately to each individual execution thread.",
+    "id": 66
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 5: Heap Memory",
+    "description": "Heap structural organization: Young Generation (Eden, S0, S1), Old Generation, Object Promotion, and TLAB buffers.",
+    "examples": "### 1. Generational Heap Structure\nJava separates the heap into Young and Old generations because most objects die young.\n\n```\n+-------------------------------------------------+------------------------+\n| Young Generation                                | Old Generation         |\n|   +------------------+-------------+---------+  |                        |\n|   | Eden Space       | Survivor S0 | S1      |  | (Promoted objects,     |\n|   | (New allocations)| (Aging)     | (Aging) |  |  humongous objects)    |\n|   +------------------+-------------+---------+  |                        |\n+-------------------------------------------------+------------------------+\n```\n\n---\n\n### 2. Object Allocation and Promotion Flow\n1.  **New Objects**: Allocated inside the **Eden Space**.\n2.  **Minor GC**: Cleans Eden. Unused objects die; survivors are copied to Survivor Space **S0**, resetting their age counters.\n3.  **Aging**: Subsequent GCs copy survivors back and forth between **S0** and **S1**, incrementing their age counter with each pass.\n4.  **Promotion**: When an object's age exceeds the tenuring threshold (default is 15), it is promoted to the **Old Generation**.\n\n---\n\n### 3. Thread Local Allocation Buffer (TLAB)\nTo prevent threads from blocking each other while allocating memory in the shared Heap, the JVM assigns a small thread-private memory block in Eden called the **TLAB**. Threads allocate new objects inside their own TLAB without locking the rest of the heap.",
+    "summary": "Heap is divided into Eden, Survivor (S0/S1), and Old Generation. Objects age in Survivor spaces and promote to Old Gen when they hit the tenuring threshold. TLABs prevent thread allocation conflicts.",
+    "id": 67
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 6: Stack Memory",
+    "description": "Stack frame variables, local operands, recursive call growths, and StackOverflowError causes.",
+    "examples": "### 1. Stack Frame Architecture\nEach execution thread owns a private JVM Stack. When a method is called, a new **Stack Frame** is pushed to the top of the stack:\n\n```\n+-------------------------------------------------------+\n| Stack Frame (Current Executed Method)                 |\n|   +-------------------------------------------------+ |\n|   | Local Variables Array (primitives & references) | |\n|   | Operand Stack (performs arithmetic operations)   | |\n|   | Frame Data (method return, constant pool ref)   | |\n|   +-------------------------------------------------+ |\n+-------------------------------------------------------+\n| Stack Frame (Caller Method)                           |\n+-------------------------------------------------------+\n```\n\n---\n\n### 2. Stack Growth & StackOverflowError\n*   Stack grows dynamically as nested method calls increase.\n*   **StackOverflowError**: Thrown when a thread's call stack exceeds its allocated memory limit, commonly caused by infinite recursion or deeply nested method chains.\n\n```java\n// Causes StackOverflowError\npublic void infiniteRecursiveCall() {\n    infiniteRecursiveCall(); // Pushes frames until stack space is exhausted\n}\n```",
+    "summary": "Stack stores execution frames holding local variables and references. Nested method calls push frames; returning pops them. Running out of stack space throws a StackOverflowError.",
+    "id": 68
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 7: Method Area / Metaspace",
+    "description": "Method Area specifications, PermGen limitations, Metaspace native memory structures, and Metaspace OutOfMemory errors.",
+    "examples": "### 1. PermGen vs. Metaspace\nThe Method Area holds class metadata, constant pools, and static fields.\n*   **PermGen (Java 7 and older)**: Allocated inside the fixed JVM Heap space. Resizing is difficult, frequently causing `java.lang.OutOfMemoryError: PermGen space` when loading many classes dynamically.\n*   **Metaspace (Java 8 and newer)**: Uses **Native Memory** (external host system RAM) instead of JVM heap. It dynamically grows as needed, reducing memory exhaustion limits.\n\n```\n[ Java 7 Heap ] -----------------------------> [ PermGen Space (Fixed Size) ]\n[ Java 8+ Native Memory ] --------------------> [ Metaspace (Dynamic Size) ]\n```\n\n---\n\n### 2. Metaspace Content\n*   Class Metadata (class structures, bytecode, superclass names).\n*   Runtime Constant Pool (method names, constant literals).\n*   Static variables (moved to Heap in Java 8+ for GC efficiency).\n\n---\n\n### 3. Metaspace OutOfMemoryError\nCan still occur if class definitions are loaded endlessly (e.g. dynamically generated proxy classes) without being cleaned up, eventually exhausting native host system RAM.",
+    "summary": "Metaspace replaced PermGen in Java 8, moving class metadata from JVM heap to native system RAM. It grows dynamically, but dynamic class leaks can still cause native memory OOM.",
+    "id": 69
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 8: Program Counter Register",
+    "description": "PC Register thread pointer, instruction tracking, and multi-thread context-switching mechanics.",
+    "examples": "### 1. PC Register Role\nEach JVM thread owns a private **Program Counter (PC) Register** allocated during thread creation.\n*   **Pointer Function**: Tracks the memory address of the bytecode instruction currently executing.\n*   **Native Methods**: If the thread is executing a native method (via JNI), the PC register value remains undefined (`null`).\n\n---\n\n### 2. Multi-Threading Context Switching\nWhen the CPU pauses one thread to run another (context switching):\n1.  The operating system saves the current thread's state.\n2.  The thread's PC Register stores the exact instruction address where it was paused.\n3.  When the thread resumes, the JVM reads its PC register to continue execution from the exact instruction it paused on.",
+    "summary": "PC Register stores the execution address of the current bytecode instruction. It is thread-private and enables the JVM to track execution state during thread context switching.",
+    "id": 70
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 9: Native Method Stack",
+    "description": "C/C++ integration via JNI native stacks, method mappings, and integration mechanics.",
+    "examples": "### 1. Role of Native Method Stack\nThe **Native Method Stack** supports execution of non-Java native code:\n*   **JNI Integration**: Manages calling native methods written in C, C++, or assembly language.\n*   **Thread Allocation**: Spawns privately for each thread executing native operations.\n\n---\n\n### 2. JNI Execution Flow\nWhen a Java application invokes a method decorated with the `native` modifier (e.g., `Thread.currentThread()`):\n1.  The JVM stops running standard Java bytecode.\n2.  The JNI locates the corresponding Compiled C/C++ library file.\n3.  Execution moves to the Native Method Stack to execute native instructions directly on system hardware.\n\n```java\n// Core Java native declaration\npublic class System {\n    public static native long currentTimeMillis(); // Runs on Native Method Stack\n}\n```",
+    "summary": "Native Method Stack executes native C/C++ code loaded via JNI bridges. It is allocated privately per-thread to execute low-level operating system APIs.",
+    "id": 71
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 10: Object Creation Process",
+    "description": "Step-by-step internal object allocation: memory reservation, headers (Mark Word, Klass Pointer), and memory alignment.",
+    "examples": "### 1. Object Creation Steps\nExecuting `Employee emp = new Employee()` triggers five internal JVM steps:\n1.  **Class Loading Check**: JVM checks if the `Employee` class metadata is loaded in Metaspace. If not, it loads the class.\n2.  **Memory Allocation**: Allocates required memory in the Heap. The object size is known at compile-time.\n3.  **Default Initialization**: Sets all fields to default values (e.g. references to `null`, numbers to `0`).\n4.  **Object Header Initialization**: Populates the object header with system metadata (lock flags, GC age, hashcode).\n5.  **Constructor Execution**: Executes class constructors to initialize custom variable properties.\n\n---\n\n### 2. Object Memory Layout\nAn object in Heap consists of three segments:\n*   **Object Header**:\n    *   *Mark Word*: Stores identity hashcode, GC age flags, lock states, and thread biases.\n    *   *Klass Pointer*: Reference pointer to class metadata in Metaspace.\n*   **Instance Data**: Actual field values of the object.\n*   **Padding**: Alignment bytes. JVM requires objects to align to multiples of 8 bytes. Padding fills empty slots to satisfy this requirement.",
+    "summary": "Object creation loads metadata, reserves heap space, initializes default values, configures headers, and runs constructors. Objects are aligned to 8-byte boundaries.",
+    "id": 72
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 11: Memory Allocation",
+    "description": "Heap allocation mechanics: TLAB, Bump Pointer, Free List, Escape Analysis stack allocation, and Scalar Replacement.",
+    "examples": "### 1. Heap Allocation Strategies\nJVM allocates memory in the heap using two primary algorithms:\n*   **Bump-the-Pointer**: Used in defragmented heaps (like Eden). Keeps a pointer to the next free block. Allocating memory simply bumps the pointer forward by the requested object size. Time complexity: `O(1)`.\n*   **Free List**: Used in fragmented heaps (like Old Gen). Keeps a list of free memory blocks, searching the list for a slot that fits the object.\n\n---\n\n### 2. Stack Allocation (Escape Analysis Optimization)\nIf the JIT Compiler's **Escape Analysis** detects that an object does not escape the scope of the method it was created in:\n*   **Optimization**: Allocates the object directly on the **Stack Frame** instead of the Heap.\n*   **Performance**: The object is automatically cleaned up when the method returns, bypasses GC, and runs significantly faster.\n*   **Scalar Replacement**: Breaks down the object's instance fields into primitive local variables, avoiding object allocation overhead altogether.",
+    "summary": "Bump Pointer allocates memory in O(1) in defragmented heaps; Free Lists scan fragmented space. Escape analysis optimizes allocations by placing non-escaping objects on the Stack.",
+    "id": 73
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 12: Object Lifecycle",
+    "description": "Object lifecycle states, reachability checks, and comparisons of Strong, Soft, Weak, and Phantom references.",
+    "examples": "### 1. Lifecycle Stages\nAn object transitions through five states:\n```\nCreated --> In Use --> Unreachable --> Eligible for GC --> Collected\n```\n\n---\n\n### 2. Reachability Analysis\nAn object is reachable if it can be accessed from any active reference root. Once all reference chains to an object are severed, it is marked as unreachable and becomes eligible for GC.\n\n---\n\n### 3. Reference Strengths\nJava provides four types of references that interact differently with the Garbage Collector:\n*   **Strong Reference**: Standard references (`Employee emp = new Employee()`). Objects are never collected, even if the system runs out of memory.\n*   **Soft Reference**: Collected only when the JVM is about to run out of memory (OOM). Ideal for memory-sensitive caches.\n*   **Weak Reference**: Collected during the next Garbage Collection cycle, regardless of memory availability. Used in `WeakHashMap`.\n*   **Phantom Reference**: Used for pre-mortem cleanups. Collected after being enqueued in a `ReferenceQueue`.",
+    "summary": "Objects move from created to unreachable states. GC reclaims unreachable references. Reference strengths range from Strong (never GC'd) to Weak (reclaimed on next GC pass).",
+    "id": 74
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 13: Garbage Collection Fundamentals",
+    "description": "Introduction to garbage collection, comparison to reference counting, and why JVM uses reachability analysis.",
+    "examples": "### 1. Automatic Memory Management\nJVM automatically reclaims memory by cleaning unreachable heap allocations, eliminating manual `free()` memory calls and preventing memory leaks.\n\n---\n\n### 2. Reference Counting vs. Reachability Analysis\n*   **Reference Counting**: Increments an object's counter when referenced, and decrements it when dereferenced. Collected when count hits 0.\n    *   *Flaw*: Cannot detect **circular dependencies** (Object A references B, and B references A. Their count never hits 0, causing a memory leak).\n*   **Reachability Analysis**: JVM starts from active roots (GC Roots) and traces reference paths. Any object that cannot be reached from any root is marked for collection, resolving circular leaks.\n\n```\nGC Root --> Object A --> Object B      (Reachable: Kept)\n            Object C <--> Object D      (Unreachable Circle: Collected)\n```",
+    "summary": "JVM uses Reachability Analysis starting from active GC Roots, rather than simple Reference Counting, to clean circular memory dependencies safely.",
+    "id": 75
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 14: GC Roots",
+    "description": "Defining GC Roots, root categories (local variables, active threads, JNI references), and reachability start points.",
+    "examples": "### 1. What is a GC Root?\nA **GC Root** is an active reference pointer originating from outside the Heap. Garbage collection starts by tracing paths from these roots to locate all active objects.\n\n---\n\n### 2. Primary GC Root Categories\nAn object is kept alive if it is referenced by any of the following roots:\n1.  **Local Variables**: Active reference variables stored inside thread stack execution frames.\n2.  **Static Variables**: Static fields declared inside classes loaded in Metaspace.\n3.  **Active Threads**: Instances of running Thread objects.\n4.  **JNI References**: Local and global references loaded by C/C++ native method stacks.\n5.  **System Classes**: System loaders and classes required by the JVM runtime.",
+    "summary": "GC Roots are reference pointers outside the heap. Active thread local variables, static variables, and JNI handles act as roots to determine object reachability.",
+    "id": 76
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 15: Garbage Collection Algorithms",
+    "description": "Deep dive into core GC algorithms: Mark-Sweep, Mark-Compact, Copying, and Generational configurations.",
+    "examples": "### 1. Mark-Sweep Algorithm\n1.  **Mark**: Traces paths from GC Roots to mark all active objects.\n2.  **Sweep**: Scans the heap and reclaims memory from unmarked objects.\n*   *Flaw*: Leaves memory fragmented with empty spaces, making it difficult to allocate large objects.\n\n---\n\n### 2. Mark-Compact Algorithm\n1.  **Mark**: Identifies active objects.\n2.  **Compact**: Moves all marked objects to one end of the heap, leaving a contiguous free memory block. Eliminates fragmentation but takes longer to run due to pointer updates.\n\n---\n\n### 3. Copying Algorithm\nDivides memory into two equal zones.\n1.  Marks active objects in the active zone.\n2.  Copies active objects to the idle zone, defragmenting them in-place.\n3.  Swaps the active and idle zones.\n*   *Performance*: Extremely fast, but wastes 50% of the allocated memory space.",
+    "summary": "Mark-Sweep is fast but causes fragmentation. Mark-Compact shifts objects to resolve fragmentation. Copying is fast but wastes half of the allocated space.",
+    "id": 77
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 16: Generational Garbage Collection",
+    "description": "Generational Heap partitioning, Eden allocations, survivor spaces aging, and promotion threshold properties.",
+    "examples": "### 1. Weak Generational Hypothesis\nGenerational GC is based on the observation that:\n*   Most objects die shortly after allocation.\n*   Objects that survive multiple GC cycles tend to live for a long time.\n\n---\n\n### 2. Generational Partitioning\nTo optimize GC passes, the JVM divides the heap into two generations:\n*   **Young Generation**: Designed for short-lived objects. Collected frequently via fast **Minor GCs**. Divided into Eden (80%), S0 (10%), and S1 (10%).\n*   **Old Generation**: Designed for long-lived objects. Collected less frequently via **Major GCs** or **Full GCs**.",
+    "summary": "Generational GC splits the heap into Young and Old generations to optimize sweep cycles. Young Gen is cleared using frequent Minor GCs; Old Gen is cleared using Major/Full GCs.",
+    "id": 78
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 17: Minor GC",
+    "description": "Eden cleanup execution flow, survivor space copy cycles, object age updates, and tenuring thresholds.",
+    "examples": "### 1. Minor GC Trigger\nMinor GC occurs when the **Eden Space** runs out of memory.\n\n---\n\n### 2. Minor GC Step-by-Step Flow\n1.  **Mark**: Traverses GC Roots to identify active objects in Eden and the active Survivor space (e.g., S0).\n2.  **Copy**: Copies active objects to the empty Survivor space (S1), defragmenting them in-place.\n3.  **Clear**: Reclaims all memory inside Eden and S0.\n4.  **Age Increment**: Increments the age counter of the copied objects by 1.\n5.  **Swap**: Swaps the roles of S0 and S1 (S1 becomes the active survivor space, S0 becomes the empty destination for the next GC).\n\n---\n\n### 3. Tenuring Threshold\nIf an object's age reaches the tenuring threshold (default is 15), it is promoted to the Old Generation. If a survivor space fills up during a GC cycle, objects are promoted early (called premature promotion).",
+    "summary": "Minor GC clears Eden and copies survivor objects to the empty S0/S1 space, incrementing their age. Objects are promoted to Old Gen when they hit the tenuring threshold.",
+    "id": 79
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 18: Major GC",
+    "description": "Old Generation garbage collection triggers, promotion failure bounds, fragmentation issues, and execution pauses.",
+    "examples": "### 1. Major GC Trigger\nMajor GC reclaims memory in the **Old Generation**. It is triggered when:\n*   The Old Generation runs out of space.\n*   A promotion failure occurs (Young Gen tries to promote an object, but the Old Gen has no space to receive it).\n\n---\n\n### 2. Major GC Performance Impact\n*   **Sweep Area**: The Old Generation is much larger than the Young Generation, containing many more objects.\n*   **Algorithms**: Uses Mark-Sweep or Mark-Compact algorithms to resolve fragmentation.\n*   **Performance**: Scanning the Old Gen takes significantly longer, causing noticeable execution pauses.",
+    "summary": "Major GC reclaims memory in the Old Generation. It is triggered by space exhaustion or promotion failures, and takes longer to run than Minor GC.",
+    "id": 80
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 19: Full GC",
+    "description": "Full GC complete heap collections, class metadata cleanups, Stop-The-World freezes, and performance tuning targets.",
+    "examples": "### 1. What is a Full GC?\nA **Full GC** cleans the entire JVM memory space, including:\n*   Young Generation (Eden, S0, S1)\n*   Old Generation\n*   Metaspace class metadata\n\n---\n\n### 2. Triggers\n*   System code invokes `System.gc()`.\n*   The Old Generation or Metaspace runs out of space.\n*   Promotion failures during Minor GCs.\n\n---\n\n### 3. Stop-The-World Freeze\nA Full GC typically triggers a complete **Stop-The-World (STW)** pause, freezing all application threads while the entire heap is swept and defragmented. This causes significant latency spikes in production systems.",
+    "summary": "Full GC cleans the entire heap and Metaspace, causing a Stop-The-World pause. Triggered by resource exhaustion or System.gc() calls.",
+    "id": 81
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 20: Stop-The-World (STW)",
+    "description": "GC safepoints, application freezes, latency impacts, and how modern collectors minimize pauses.",
+    "examples": "### 1. What is Stop-The-World?\nA **Stop-The-World (STW)** pause freezes all application execution threads while the Garbage Collector runs. Only GC threads run during a safepoint.\n\n---\n\n### 2. Why is STW Required?\nTo trace object reference paths accurately, the JVM needs a consistent snapshot of memory. If application threads modify references while the GC is scanning, the GC could misidentify reachable objects and delete active data.\n\n---\n\n### 3. Safepoints\nTo enter an STW pause, the JVM signals application threads to pause at predefined instructions called **Safepoints** (e.g., loop boundaries, method returns).\n\n---\n\n### 4. Latency Impact\nLong STW pauses increase application latency. Modern Garbage Collectors (G1, ZGC, Shenandoah) run most GC phases concurrently with application threads to minimize STW pauses.",
+    "summary": "STW pauses freeze application threads to guarantee memory consistency during GC sweeps. Threads pause at Safepoint instructions. Modern collectors run concurrently to reduce pauses.",
+    "id": 82
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 21: Modern Garbage Collectors",
+    "description": "Comparing Serial GC, Parallel GC, G1 GC (regions, humongous objects), ZGC (colored pointers), and Shenandoah.",
+    "examples": "### 1. Serial & Parallel GC\n*   **Serial GC (`-XX:+UseSerialGC`)**: Uses a single thread for GC. Pauses are long; suitable only for small command line utilities.\n*   **Parallel GC (`-XX:+UseParallelGC`)**: Uses multiple threads to speed up GC. Focuses on maximizing throughput, but still triggers STW pauses.\n\n---\n\n### 2. Garbage-First GC (G1 GC)\n*   **Regions**: Divides the heap into thousands of equal-sized virtual memory regions (`-XX:+UseG1GC`).\n*   **Humongous Objects**: Spans multiple contiguous regions for large objects.\n*   **Predictable Pauses**: Cleans regions with the most garbage first, letting developers set target pause times (e.g. `-XX:MaxGCPauseMillis=200`).\n\n---\n\n### 3. Z Garbage Collector (ZGC)\n*   **Ultra-Low Latency (`-XX:+UseZGC`)**: Scales to massive heaps (terabytes) while keeping STW pauses under 1 millisecond.\n*   **Colored Pointers & Load Barriers**: Encodes GC metadata directly inside object reference pointers, allowing relocation to run concurrently with application threads.\n\n---\n\n### 4. Shenandoah GC\n*   **Concurrent Compaction (`-XX:+UseShenandoahGC`)**: Runs the compaction/relocation phase concurrently with application threads, minimizing pause times.",
+    "summary": "Parallel GC maximizes throughput; G1 GC offers predictable pause times using regions. ZGC and Shenandoah concurrent relocation keep STW pauses under 1 millisecond.",
+    "id": 83
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 22: Reference Types",
+    "description": "Strong, Soft, Weak, and Phantom reference lifecycle behaviors, and ReferenceQueue monitoring.",
+    "examples": "### 1. Reference Strengths & GC Behavior\nJava provides four references that interact differently with the Garbage Collector:\n\n*   **Strong Reference**: Standard reference (`Object obj = new Object()`). Object is never collected, even if the system is about to crash.\n*   **Soft Reference**: Collected only when memory is extremely low, helping prevent OutOfMemoryErrors. Ideal for memory-sensitive caches.\n*   **Weak Reference**: Collected during the next GC cycle, regardless of memory limits. Used in `WeakHashMap` to avoid memory leaks.\n*   **Phantom Reference**: Used to perform cleanup actions before an object is removed from memory. Requires a `ReferenceQueue`.\n\n---\n\n### 2. ReferenceQueue integration\nA `ReferenceQueue` monitors object cleanup. When a Soft, Weak, or Phantom reference's referent is collected, the JVM inserts the reference object into the queue, letting the application perform post-mortem cleanups.\n\n```java\nReferenceQueue<Object> queue = new ReferenceQueue<>();\nWeakReference<Object> weakRef = new WeakReference<>(new Object(), queue);\n```",
+    "summary": "Strong references are never collected. Soft references are reclaimed only during memory pressure. Weak references are collected on the next GC pass. Phantom references track object deletion.",
+    "id": 84
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 23: Memory Leaks",
+    "description": "How memory leaks happen in Java, common causes (static fields, listeners, thread locals), and troubleshooting strategies.",
+    "examples": "### 1. What is a Memory Leak in Java?\nA memory leak occurs when the application retains strong references to unused objects. Because these objects remain reachable from GC Roots, the Garbage Collector cannot reclaim them, causing the Heap to grow until the app throws an `OutOfMemoryError`.\n\n---\n\n### 2. Common Causes of Memory Leaks\n*   **Static Collections**: Static fields are root references that live as long as the application runs. Adding items to a static collection without removing them will leak memory.\n*   **Unclosed Resources**: Leaving database connections, file streams, or sockets open can leak native memory.\n*   **ThreadLocal Variables**: ThreadLocal variables are associated with threads. In web servers using thread pools (like Tomcat), threads are reused. If you don't call `threadLocal.remove()`, the stored object remains referenced forever.\n*   **Listeners and Callbacks**: Registering event listeners without unregistering them keeps the listener objects referenced in memory.",
+    "summary": "Memory leaks happen when unused objects remain strongly referenced from GC Roots. Avoid leaks by clearing static collections, closing resources, and removing ThreadLocals.",
+    "id": 85
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 24: Common JVM Errors",
+    "description": "Causes of OutOfMemoryError (Heap space, GC overhead, Metaspace) and StackOverflowError.",
+    "examples": "### 1. OutOfMemoryError (OOM) Types\n*   **java.lang.OutOfMemoryError: Java heap space**: The Heap is full. Usually caused by memory leaks or too small a heap configuration (`-Xmx`).\n*   **java.lang.OutOfMemoryError: GC overhead limit exceeded**: The application spends over 98% of its time running GC and reclaims under 2% of the heap, signaling memory exhaustion.\n*   **java.lang.OutOfMemoryError: Metaspace**: Metaspace is full. Caused by loading too many dynamic classes or classloader leaks.\n*   **java.lang.OutOfMemoryError: Unable to create new native thread**: The OS cannot allocate thread stacks. Caused by spawning too many threads.\n\n---\n\n### 2. StackOverflowError\nThrown when a thread's stack frame allocation exceeds its limit.\n*   *Cause*: Typically caused by infinite recursion or excessively deep method calls.\n\n```java\n// Throws StackOverflowError\npublic void recursiveLoop() {\n    recursiveLoop();\n}\n```",
+    "summary": "OOM occurs when the heap, Metaspace, or native threads run out of memory. StackOverflow occurs when a thread's call stack runs out of memory, usually due to infinite recursion.",
+    "id": 86
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 25: Execution Engine",
+    "description": "Understanding the execution engine components: Interpreter, JIT compiler, Tiered Compilation, and Code Cache.",
+    "examples": "### 1. Execution Engine Subsystems\nThe execution engine translates bytecode instructions into native CPU instructions using three components:\n\n```\n                  Bytecode (.class)\n                         |\n                 Execution Engine\n             /           |             \\\n     Interpreter    JIT Compiler    Garbage Collector\n```\n\n---\n\n### 2. Interpreter vs. JIT Compiler\n*   **Interpreter**: Starts up instantly, reading and executing bytecode instructions line-by-line. However, executing loops line-by-line is slow.\n*   **JIT Compiler**: Compiles frequently executed \"hot code\" paths directly to native machine instructions, enabling native execution speeds.\n\n---\n\n### 3. Tiered Compilation\nModern JVMs use tiered compilation:\n*   *Level 0*: Interpreter runs bytecode.\n*   *Levels 1-3*: Simple JIT compilers compile code quickly with basic optimizations.\n*   *Level 4*: High-optimization JIT compiler (C2) compiles code with aggressive optimizations like method inlining.",
+    "summary": "The Execution Engine uses an Interpreter for instant startup, and a JIT compiler to compile hot code paths to native machine instructions for maximum execution speed.",
+    "id": 87
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 26: JIT Compiler",
+    "description": "JIT compilation optimizations: hot method identification, method inlining, loop unrolling, and dead code elimination.",
+    "examples": "### 1. Finding Hot Methods\nThe JVM tracks method execution counts. If a method is called frequently (a \"hot method\"), the JIT compiles it to native instructions and saves it in the **Code Cache**.\n\n---\n\n### 2. Method Inlining\nThe JIT replaces a method call instruction with the actual body of the target method, eliminating the overhead of pushing and popping stack frames:\n\n```java\n// Before Inlining:\nint result = add(a, b);\n\n// After JIT Inlining:\nint result = a + b;\n```\n\n---\n\n### 3. Loop Unrolling\nThe JIT duplicates a loop body to execute multiple iterations per pass, reducing loop overhead and increasing performance:\n\n```java\n// Before:\nfor (int i = 0; i < 4; i++) { doWork(i); }\n\n// After JIT Unrolling:\ndoWork(0); doWork(1); doWork(2); doWork(3);\n```",
+    "summary": "JIT identifies hot methods to compile to native code. Optimizations like Method Inlining and Loop Unrolling eliminate stack frames and loop overhead.",
+    "id": 88
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 27: JVM Optimization",
+    "description": "JVM compiler optimizations: Lock Elimination, Lock Coarsening, Scalar Replacement, and Compressed OOPs.",
+    "examples": "### 1. Lock Elimination & Coarsening\n*   **Lock Elimination**: If Escape Analysis proves a locked object is thread-local and cannot escape the current method, the JIT removes the synchronization locks.\n*   **Lock Coarsening**: Merges adjacent synchronized blocks locking the same object into a single block, reducing locking overhead:\n\n```java\n// Lock Coarsening:\nsynchronized(obj) { doWork1(); }\nsynchronized(obj) { doWork2(); }\n\n// Compiled to:\nsynchronized(obj) { doWork1(); doWork2(); }\n```\n\n---\n\n### 2. Scalar Replacement\nIf Escape Analysis proves an object does not escape a method, the JIT breaks down the object's fields into primitive local variables, avoiding Heap allocation and GC overhead.\n\n---\n\n### 3. Compressed OOPs (Ordinary Object Pointers)\nOn 64-bit JVMs, reference pointers occupy 8 bytes. With Compressed OOPs enabled (`-XX:+UseCompressedOops`), the JVM compresses pointers to 4 bytes by shifting addresses, saving memory.",
+    "summary": "Lock elimination removes thread-local locks. Lock coarsening merges adjacent sync blocks. Scalar replacement converts objects to primitives. Compressed OOPs save memory.",
+    "id": 89
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 28: JVM Parameters",
+    "description": "Common command line parameters for tuning heap size, young generation size, Metaspace, GC types, and logging.",
+    "examples": "### 1. Heap Sizing Parameters\n*   `-Xms<size>`: Initial heap allocation (e.g. `-Xms4g` for 4 Gigabytes).\n*   `-Xmx<size>`: Maximum heap allocation (e.g. `-Xmx8g`).\n*   `-Xss<size>`: Stack size per thread (e.g. `-Xss1m`).\n\n---\n\n### 2. Young Gen & Metaspace Sizing\n*   `-XX:NewSize=<size>`: Initial Young Generation size.\n*   `-XX:MaxNewSize=<size>`: Maximum Young Generation size.\n*   `-XX:MetaspaceSize=<size>`: Initial Metaspace allocation.\n*   `-XX:MaxMetaspaceSize=<size>`: Upper limit for Metaspace class allocation.\n\n---\n\n### 3. Garbage Collector Selection\n*   `-XX:+UseSerialGC`: Enables Serial GC.\n*   `-XX:+UseParallelGC`: Enables Parallel throughput GC.\n*   `-XX:+UseG1GC`: Enables Garbage-First GC.\n*   `-XX:+UseZGC`: Enables Z Garbage Collector.\n*   `-XX:+UseShenandoahGC`: Enables Shenandoah GC.\n\n---\n\n### 4. GC Logging (Java 9+)\n*   `-Xlog:gc*:<path>:time`: Writes detailed GC log history.",
+    "summary": "Configure JVM using parameters: -Xms/-Xmx for Heap, NewSize for Young Gen, MetaspaceSize for metadata, UseG1GC/UseZGC to select the GC, and -Xlog to write logs.",
+    "id": 90
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 29: Monitoring Tools",
+    "description": "Standard JDK monitoring tools: jps, jstack, jmap, jstat, jcmd, VisualVM, JFR, and Eclipse MAT.",
+    "examples": "### 1. CLI Diagnostic Tools\nThe JDK includes command-line utilities to monitor JVM health:\n*   `jps`: Lists running JVM process IDs (PIDs).\n*   `jstack <pid>`: Generates active thread dumps to diagnose deadlocks or CPU spikes.\n*   `jmap -dump:format=b,file=heap.hprof <pid>`: Captures a binary heap dump to diagnose memory leaks.\n*   `jstat -gcutil <pid> 1000`: Displays GC statistics every 1000 milliseconds.\n*   `jcmd`: Sends diagnostic commands to the running JVM.\n\n---\n\n### 2. GUI Monitoring Tools\n*   **VisualVM**: Provides real-time charts monitoring CPU, Heap, Metaspace, threads, and GC behavior.\n*   **Java Flight Recorder (JFR) & Java Mission Control (JMC)**: Low-overhead profiling tools built into the JVM.\n*   **Eclipse Memory Analyzer (MAT)**: Analyzes large Heap dumps (`.hprof` files) to find leak suspects.",
+    "summary": "JDK diagnostic tools include jstack for thread dumps, jmap for heap dumps, jstat for GC stats, VisualVM for real-time charts, and MAT for memory leak analysis.",
+    "id": 91
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 30: Heap Dump Analysis",
+    "description": "Analyzing heap dumps: Shallow vs Retained object sizes, Dominator Trees, and leak suspects.",
+    "examples": "### 1. What is a Heap Dump?\nA heap dump is a snapshot of all objects residing in Heap memory at a specific point in time, saved as a binary `.hprof` file.\n\n---\n\n### 2. Shallow vs. Retained Size\n*   **Shallow Size**: The memory occupied by the object itself (typically header and fields), excluding referenced objects.\n*   **Retained Size**: The total memory freed if the object is garbage collected (including referenced objects that are *only* reachable through it).\n\n---\n\n### 3. Dominator Tree\nA Dominator Tree groups referenced objects. If Object A keeps Object B alive, A dominates B. High retained size objects near the root of the Dominator Tree are prime memory leak suspects.\n\n---\n\n### 4. Leak Suspects Report\nAnalyzing heap dumps in tools like **Eclipse MAT** generates a \"Leak Suspects\" report, identifying class instances occupying abnormally high percentages of the heap.",
+    "summary": "Heap dumps contain heap snapshots. Shallow size is the object's own memory; Retained size is the memory freed if it is GC'd. Dominator Trees help identify leak suspects.",
+    "id": 92
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 31: Thread Dump Analysis",
+    "description": "Analyzing thread dumps: detecting deadlocks, identifying CPU spikes, and tracking blocked threads.",
+    "examples": "### 1. What is a Thread Dump?\nA thread dump is a snapshot of the execution state of all threads running inside the JVM at a specific moment.\n\n---\n\n### 2. Generating Thread Dumps\nGenerate thread dumps using JDK command-line tools:\n```bash\njstack -l <pid> > threaddump.txt\n```\n\n---\n\n### 3. Thread States to Monitor\n*   **RUNNABLE**: Thread is actively executing. High CPU usage is usually caused by threads stuck in infinite loops in a RUNNABLE state.\n*   **BLOCKED**: Thread is waiting to acquire a monitor lock held by another thread.\n*   **WAITING**: Thread is waiting for a signal from another thread (e.g. via `lock.wait()`).\n\n---\n\n### 4. Deadlock Detection\nThread dumps contain a dedicated section identifying deadlocks, listing the threads involved, the locks they hold, and the locks they are waiting for.",
+    "summary": "Thread dumps record thread execution states. Runnable threads indicate CPU usage; Blocked threads indicate lock contention. jstack detects deadlocks.",
+    "id": 93
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 32: GC Logs",
+    "description": "Reading GC logs, analyzing pause times, allocation rates, and promotion statistics.",
+    "examples": "### 1. Enabling GC Logs\nConfigure JVM logging using command line parameters:\n```bash\n-Xlog:gc*:file=gc.log:time,uptime,level,tags\n```\n\n---\n\n### 2. GC Log Line Analysis\nA typical G1 GC log output:\n```\n[0.143s][info][gc,start    ] GC(12) Garbage Collection (G1 Evacuation Pause) (young)\n[0.145s][info][gc,phases   ] GC(12) Pre Evacuate Collection Set: 0.1ms\n[0.155s][info][gc,phases   ] GC(12) Evacuate Collection Set: 9.8ms\n[0.160s][info][gc,metaspace] GC(12) Metaspace: 20432K->20432K(1081344K)\n[0.162s][info][gc          ] GC(12) Pause Young (Normal) (G1 Evacuation Pause) 120M->24M(1024M) 19.2ms\n```\n\n---\n\n### 3. Diagnostic Metrics\n*   **Pause Time**: Elapsed duration (e.g., `19.2ms`). High pause times increase application latency.\n*   **Memory Reclaimed**: Heap space reduction (e.g. `120M` down to `24M`).\n*   **Promotion Rate**: The speed at which objects move from Young Gen to Old Gen. High promotion rates indicate survivor space overflow.",
+    "summary": "GC logs document collection sweeps. Analyze pause times to verify latency, memory reduction to verify GC efficiency, and promotion rates to verify survivor space sizes.",
+    "id": 94
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 33: Performance Tuning",
+    "description": "Tuning Heap, Young Gen sizing, GC selection targets, and latency optimizations.",
+    "examples": "### 1. Tuning Process Steps\n1.  **Define SLA Goals**: Determine latency limits (e.g., max pause under 50ms) and throughput goals (e.g. process 10k requests/sec).\n2.  **Profile**: Run JFR profiling and inspect GC logs to identify bottlenecks.\n3.  **Optimize**: Apply tuning changes and verify results.\n\n---\n\n### 2. GC Selection Guidelines\n*   **Low Latency (under 10ms)**: Choose ZGC (`-XX:+UseZGC`) or Shenandoah.\n*   **Predictable Latency (50ms - 200ms)**: Choose G1 GC (`-XX:+UseG1GC`) and set target pause times (`-XX:MaxGCPauseMillis=100`).\n*   **High Throughput**: Choose Parallel GC (`-XX:+UseParallelGC`), ideal for batch processing.\n\n---\n\n### 3. Sizing Heap\n*   Set initial heap (`-Xms`) and max heap (`-Xmx`) to the same size to prevent performance overhead during dynamic heap resizing.\n*   Allocate enough survivor space to prevent premature promotions.",
+    "summary": "Tuning aligns JVM settings with performance goals. Select Parallel GC for throughput, G1 for predictable latency, and ZGC for sub-millisecond pauses. Keep -Xms and -Xmx equal.",
+    "id": 95
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 34: Interview Scenarios",
+    "description": "Answers to top JVM and Garbage Collection interview questions.",
+    "examples": "### 1. Key Interview Questions & Answers\n*   **Why doesn't Java use reference counting?** Reference counting cannot detect circular references. Java uses Reachability Analysis starting from GC Roots to clean circular leaks.\n*   **What are GC Roots?** Reference pointers outside the heap, such as active thread stack variables, static classes, and JNI handles.\n*   **Why is OutOfMemoryError thrown despite free system RAM?** The JVM limits heap allocations using `-Xmx`. If the heap is full, the JVM throws an OOM error, even if the host computer has free RAM.\n*   **What is Metaspace OOM?** Occurs when the native memory region holding class metadata runs out of space, typically caused by dynamic proxy class leaks.\n*   **What is Escape Analysis?** A JIT compiler optimization. If an object does not escape a method, the JIT allocates it on the Stack instead of the Heap, avoiding GC overhead.",
+    "summary": "Understand JVM internals. Reachability Analysis prevents circular leaks. OutOfMemoryErrors are triggered by JVM heap limits. Escape Analysis optimizes stack allocations.",
+    "id": 96
+  },
+  {
+    "category": "jvm_internals",
+    "title": "Module 35: Real-World Production Topics",
+    "description": "Tuning JVM for Spring Boot, Docker container-aware settings, direct byte buffers, and off-heap memory.",
+    "examples": "### 1. Container-Aware JVM Settings\nIn older Java versions running inside Docker/Kubernetes, the JVM read the host machine's total RAM instead of the container's limits.\n*   **Consequence**: The JVM allocated a heap larger than the container's limit, causing the OS to kill the container (`OOMKilled`).\n*   **Solution**: Use Java 10+ which features built-in container awareness, or configure container-aware parameters directly:\n    ```bash\n    -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0\n    ```\n\n---\n\n### 2. Direct ByteBuffers & Off-Heap Memory\n*   **Direct ByteBuffer**: Allocates memory outside the standard JVM Heap using native OS allocations (`ByteBuffer.allocateDirect(1024)`).\n*   **NIO Speed**: Speeds up network and disk I/O by avoiding copying data between native buffers and the Java Heap.\n*   **Tuning**: Limit direct memory allocations using the `-XX:MaxDirectMemorySize` parameter.",
+    "summary": "Java 10+ container support prevents containers from being killed by the OS. Direct ByteBuffers allocate off-heap memory to bypass JVM Heap overhead for high-performance I/O.",
+    "id": 97
+  },
+  {
+    "id": 98,
     "category": "spring_framework",
     "title": "Spring Boot Basics & Bean Lifecycle",
     "description": "Spring Boot automates dependency configuration and environment setups. At its core, the IoC Container manages object creation, dependency injection pipelines, stereotyping component scopes, and intercepting initialization/destruction callbacks.",
@@ -512,7 +784,7 @@
     "summary": "Understand Inversion of Control (IoC), Constructor vs Field injection, Component Scanning, Singleton/Prototype scopes, complete PostConstruct/PreDestroy lifecycles, and Auto-Configuration mechanisms."
   },
   {
-    "id": 65,
+    "id": 99,
     "category": "microservices",
     "title": "Microservices Architecture & REST API",
     "description": "Microservices decompose monolithic programs into bounded context services with independent databases. Distributed communication employs REST HTTP endpoints or Kafka events coordinated via API Gateways, Service Discovery registries, and Saga eventual consistency workflows.",
