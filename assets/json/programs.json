@@ -1,5 +1,305 @@
 [
   {
+    "category": "strings",
+    "title": "Level 1: String Basics (Length, Convert, Case, Trim, Compare)",
+    "problemStatement": "Implement basic string operations: find length, convert to char array, upper/lower case conversions, trim whitespace, and compare strings.",
+    "explanation": "Java Strings are objects backed by a char/byte array. They are immutable. Comparing strings must be done via equals() or compareTo(), not == operator.",
+    "algorithm": "1. Length: call string.length().\n2. Trim: call string.trim() (removes leading/trailing spaces).\n3. Compare: equals() checks contents, equalsIgnoreCase() ignores case differences.",
+    "timeComplexity": "O(N) for case conversions and trims; O(1) for length and index access",
+    "spaceComplexity": "O(N) for creating new modified String instances",
+    "code": "public class StringBasics {\n    public static void main(String[] args) {\n        String s = \"  Java Master  \";\n        System.out.println(\"Length: \" + s.length());\n        System.out.println(\"Trimmed: '\" + s.trim() + \"'\");\n        System.out.println(\"Uppercase: \" + s.toUpperCase());\n        System.out.println(\"Char at 5: \" + s.charAt(5));\n        \n        char[] chars = s.trim().toCharArray();\n        String reconstructed = new String(chars);\n        System.out.println(\"Reconstructed match: \" + reconstructed.equals(\"Java Master\"));\n    }\n}",
+    "output": "Length: 15\nTrimmed: 'Java Master'\nUppercase:   JAVA MASTER  \nChar at 5: a\nReconstructed match: true",
+    "id": 1
+  },
+  {
+    "category": "strings",
+    "title": "Level 2: Character Frequency (Count vowels, consonants, frequency map)",
+    "problemStatement": "Count vowels, consonants, digits, white spaces, and words in a string, and build a complete character frequency map.",
+    "explanation": "We can iterate through each character in the string, use character utility checks (like Character.isDigit or check against a set of vowels), and use a HashMap or an integer array of size 256 (ASCII) to keep track of character frequencies.",
+    "algorithm": "1. Set counters for vowels, consonants, digits, spaces.\n2. Iterate through string, check char type using conditions, increment counters.\n3. Frequency Map: For each character, array[char]++ or map.put(char, map.getOrDefault(char, 0) + 1).",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space (using 256-sized integer array)",
+    "code": "public class CharFrequency {\n    public static void countMetrics(String str) {\n        int vowels = 0, consonants = 0, digits = 0, spaces = 0;\n        str = str.toLowerCase();\n        for (int i = 0; i < str.length(); i++) {\n            char ch = str.charAt(i);\n            if (ch >= 'a' && ch <= 'z') {\n                if (ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u') vowels++;\n                else consonants++;\n            } else if (ch >= '0' && ch <= '9') {\n                digits++;\n            } else if (ch == ' ') {\n                spaces++;\n            }\n        }\n        System.out.println(\"Vowels: \" + vowels + \", Consonants: \" + consonants);\n        System.out.println(\"Digits: \" + digits + \", Spaces: \" + spaces);\n    }\n\n    public static int[] getFrequencies(String str) {\n        int[] freq = new int[256];\n        for (int i = 0; i < str.length(); i++) {\n            freq[str.charAt(i)]++;\n        }\n        return freq;\n    }\n\n    public static void main(String[] args) {\n        String test = \"Java Master 123\";\n        countMetrics(test);\n    }\n}",
+    "output": "Vowels: 4, Consonants: 6\nDigits: 3, Spaces: 2",
+    "id": 2
+  },
+  {
+    "category": "strings",
+    "title": "Level 3: Reverse String (Iterative, Recursive, Word order)",
+    "problemStatement": "Reverse a string iteratively, recursively, reverse each word, and reverse the word order in a sentence.",
+    "explanation": "Iterative reversal uses two pointers. Recursive reversal processes substring(1) + charAt(0). Reversing word order uses string splits and loops backward.",
+    "algorithm": "1. Iterative: Swap characters from left and right pointers.\n2. Reverse Words Order: Split string by space. Iterate from end to start, appending to StringBuilder.\n3. Recursive: If length <= 1, return string. Else, return reverse(substring(1)) + charAt(0).",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(N) auxiliary space",
+    "code": "public class ReverseString {\n    public static String reverseRecursive(String str) {\n        if (str == null || str.length() <= 1) return str;\n        return reverseRecursive(str.substring(1)) + str.charAt(0);\n    }\n\n    public static String reverseWordsOrder(String s) {\n        String[] words = s.trim().split(\"\\\\s+\");\n        StringBuilder sb = new StringBuilder();\n        for (int i = words.length - 1; i >= 0; i--) {\n            sb.append(words[i]);\n            if (i > 0) sb.append(\" \");\n        }\n        return sb.toString();\n    }\n\n    public static void main(String[] args) {\n        String s = \"Hello World\";\n        System.out.println(\"Reversed: \" + reverseRecursive(s));\n        System.out.println(\"Words Reversed: \" + reverseWordsOrder(s));\n    }\n}",
+    "output": "Reversed: dlroW olleH\nWords Reversed: World Hello",
+    "id": 3
+  },
+  {
+    "category": "strings",
+    "title": "Level 4: Palindrome (Check Palindrome, Longest Palindromic Substring)",
+    "problemStatement": "Check if a string is a palindrome (ignoring spaces/case), and locate the Longest Palindromic Substring.",
+    "explanation": "Checking palindrome takes O(N) using two pointers. Finding the longest palindromic substring is solved in O(N^2) using the Expand Around Center approach.",
+    "algorithm": "1. Check Palindrome: pointers left=0, right=length-1. Skip non-alphanumeric chars. Compare left and right (ignore case).\n2. Longest Substring: Treat each index and index-gap as centers. Expand outward. Keep track of the longest palindrome boundaries.",
+    "timeComplexity": "O(N) for palindrome check; O(N^2) for Longest Palindromic Substring",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "public class PalindromeProblems {\n    public static boolean isPalindrome(String s) {\n        int left = 0, right = s.length() - 1;\n        while (left < right) {\n            while (left < right && !Character.isLetterOrDigit(s.charAt(left))) left++;\n            while (left < right && !Character.isLetterOrDigit(s.charAt(right))) right--;\n            if (Character.toLowerCase(s.charAt(left)) != Character.toLowerCase(s.charAt(right))) {\n                return false;\n            }\n            left++; right--;\n        }\n        return true;\n    }\n\n    private static int start, maxLen;\n    public static String longestPalindrome(String s) {\n        if (s.length() < 2) return s;\n        start = 0; maxLen = 0;\n        for (int i = 0; i < s.length(); i++) {\n            expand(s, i, i);     // Odd length\n            expand(s, i, i + 1); // Even length\n        }\n        return s.substring(start, start + maxLen);\n    }\n\n    private static void expand(String s, int l, int r) {\n        while (l >= 0 && r < s.length() && s.charAt(l) == s.charAt(r)) {\n            l--; r++;\n        }\n        int len = r - l - 1;\n        if (len > maxLen) {\n            start = l + 1;\n            maxLen = len;\n        }\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Is Palindrome: \" + isPalindrome(\"A man, a plan, a canal: Panama\"));\n        System.out.println(\"Longest Palindromic Substring: \" + longestPalindrome(\"babad\"));\n    }\n}",
+    "output": "Is Palindrome: true\nLongest Palindromic Substring: bab",
+    "id": 4
+  },
+  {
+    "category": "strings",
+    "title": "Level 5: Duplicate Characters (Remove duplicates, First unique character)",
+    "problemStatement": "Find and remove duplicate characters, remove duplicate words, print unique characters, and locate the first non-repeating character.",
+    "explanation": "Set collections and LinkedHashMaps are useful for tracking uniqueness and preserving insertion order.",
+    "algorithm": "1. Remove Duplicates: Add characters to a LinkedHashSet, then reconstruct the string.\n2. First Non-Repeating: Store frequencies in an integer array of size 256. Scan the string again to find the first character with a frequency of 1.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space (size 256 array)",
+    "code": "import java.util.*;\n\npublic class DuplicateProblems {\n    public static String removeDuplicates(String str) {\n        Set<Character> set = new LinkedHashSet<>();\n        for (char ch : str.toCharArray()) set.add(ch);\n        StringBuilder sb = new StringBuilder();\n        for (char ch : set) sb.append(ch);\n        return sb.toString();\n    }\n\n    public static char firstUnique(String str) {\n        int[] freq = new int[256];\n        for (int i = 0; i < str.length(); i++) freq[str.charAt(i)]++;\n        for (int i = 0; i < str.length(); i++) {\n            if (freq[str.charAt(i)] == 1) return str.charAt(i);\n        }\n        return '\\0';\n    }\n\n    public static void main(String[] args) {\n        String test = \"programming\";\n        System.out.println(\"Unique String: \" + removeDuplicates(test));\n        System.out.println(\"First Unique: \" + firstUnique(test));\n    }\n}",
+    "output": "Unique String: progamin\nFirst Unique: p",
+    "id": 5
+  },
+  {
+    "category": "strings",
+    "title": "Level 6: Anagram (Check Anagram, Group Anagrams)",
+    "problemStatement": "Check if two strings are anagrams, and group anagrams together from a list of strings.",
+    "explanation": "Two strings are anagrams if they contain identical character frequencies. Sorting character keys helps group anagrams in a HashMap.",
+    "algorithm": "1. Check Anagram: count character frequencies in an array. Increment for String A, decrement for String B. Check if all values are 0.\n2. Group Anagrams: For each string, convert to char array, sort, and convert back to String as a hashmap key. Group matching words inside values list.",
+    "timeComplexity": "O(N * K log K) where N is string count and K is max string length",
+    "spaceComplexity": "O(N * K) for HashMap storage",
+    "code": "import java.util.*;\n\npublic class AnagramProblems {\n    public static boolean isAnagram(String s, String t) {\n        if (s.length() != t.length()) return false;\n        int[] count = new int[26];\n        for (int i = 0; i < s.length(); i++) {\n            count[s.charAt(i) - 'a']++;\n            count[t.charAt(i) - 'a']--;\n        }\n        for (int c : count) if (c != 0) return false;\n        return true;\n    }\n\n    public static List<List<String>> groupAnagrams(String[] strs) {\n        Map<String, List<String>> map = new HashMap<>();\n        for (String s : strs) {\n            char[] chars = s.toCharArray();\n            Arrays.sort(chars);\n            String key = new String(chars);\n            map.putIfAbsent(key, new ArrayList<>());\n            map.get(key).add(s);\n        }\n        return new ArrayList<>(map.values());\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Is Anagram: \" + isAnagram(\"silent\", \"listen\"));\n        String[] words = {\"eat\", \"tea\", \"tan\", \"ate\", \"nat\", \"bat\"};\n        System.out.println(\"Grouped Anagrams: \" + groupAnagrams(words));\n    }\n}",
+    "output": "Is Anagram: true\nGrouped Anagrams: [[eat, tea, ate], [tan, nat], [bat]]",
+    "id": 6
+  },
+  {
+    "category": "strings",
+    "title": "Level 7: Substring Problems (Longest Substring without repeating, Min Window)",
+    "problemStatement": "Solve substring challenges: Longest Substring Without Repeating Characters, and Minimum Window Substring.",
+    "explanation": "Sliding window combined with HashMaps tracks current element window boundaries efficiently, reducing complexity from O(N^2) to O(N).",
+    "algorithm": "1. Longest without repeating: Maintain left pointer and map of character indices. Expand right. If character is inside map and index >= left, update left = index + 1. Update max length.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(min(M, N)) for sliding window HashMap",
+    "code": "import java.util.HashMap;\n\npublic class SubstringProblems {\n    public static int lengthOfLongestSubstring(String s) {\n        int left = 0, max = 0;\n        HashMap<Character, Integer> map = new HashMap<>();\n        for (int right = 0; right < s.length(); right++) {\n            char ch = s.charAt(right);\n            if (map.containsKey(ch)) {\n                left = Math.max(left, map.get(ch) + 1);\n            }\n            map.put(ch, right);\n            max = Math.max(max, right - left + 1);\n        }\n        return max;\n    }\n\n    public static void main(String[] args) {\n        String s = \"abcabcbb\";\n        System.out.println(\"Longest unique substring: \" + lengthOfLongestSubstring(s));\n    }\n}",
+    "output": "Longest unique substring: 3",
+    "id": 7
+  },
+  {
+    "category": "strings",
+    "title": "Level 8: Prefix & Suffix (Longest Common Prefix, startsWith/endsWith)",
+    "problemStatement": "Find the Longest Common Prefix (LCP) in an array of strings, and implement startsWith/endsWith checks manually.",
+    "explanation": "To locate the LCP, you can sort the array and compare only the first and last strings, as sorting orders strings lexicographically.",
+    "algorithm": "1. LCP: Sort array. Compare characters of first string (A) and last string (B) from index 0. While characters match, append to prefix, else stop.",
+    "timeComplexity": "O(N * K log N) where N is array size and K is max string length",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "import java.util.Arrays;\n\npublic class PrefixSuffixProblems {\n    public static String longestCommonPrefix(String[] strs) {\n        if (strs == null || strs.length == 0) return \"\";\n        Arrays.sort(strs);\n        String first = strs[0];\n        String last = strs[strs.length - 1];\n        int i = 0;\n        while (i < first.length() && i < last.length() && first.charAt(i) == last.charAt(i)) {\n            i++;\n        }\n        return first.substring(0, i);\n    }\n\n    public static void main(String[] args) {\n        String[] arr = {\"flower\", \"flow\", \"flight\"};\n        System.out.println(\"LCP: \" + longestCommonPrefix(arr));\n    }\n}",
+    "output": "LCP: fl",
+    "id": 8
+  },
+  {
+    "category": "strings",
+    "title": "Level 9: Compression (String Compression, Run Length Encoding)",
+    "problemStatement": "Implement String Compression (Run Length Encoding) in-place: compress consecutive repeated characters and write counts.",
+    "explanation": "String compression replaces repeating characters with the character followed by its frequency count (e.g. 'aabccc' -> 'a2b1c3'). Run it in-place using two pointers.",
+    "algorithm": "1. Keep read and write pointers. Iterate read pointer.\n2. Count consecutive matches. Write character at write index, write count if count > 1.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "public class StringCompression {\n    public static int compress(char[] chars) {\n        int write = 0, read = 0;\n        while (read < chars.length) {\n            char current = chars[read];\n            int count = 0;\n            while (read < chars.length && chars[read] == current) {\n                read++;\n                count++;\n            }\n            chars[write++] = current;\n            if (count > 1) {\n                for (char c : Integer.toString(count).toCharArray()) {\n                    chars[write++] = c;\n                }\n            }\n        }\n        return write;\n    }\n\n    public static void main(String[] args) {\n        char[] test = {'a', 'a', 'b', 'b', 'c', 'c', 'c'};\n        int newLength = compress(test);\n        System.out.print(\"Compressed Array: \");\n        for (int i = 0; i < newLength; i++) System.out.print(test[i]);\n        System.out.println();\n    }\n}",
+    "output": "Compressed Array: a2b2c3",
+    "id": 9
+  },
+  {
+    "category": "strings",
+    "title": "Level 10: Rotation (Check String Rotation, Rotate by K positions)",
+    "problemStatement": "Check if String A is a rotation of String B, and perform cyclic rotations left/right by K positions.",
+    "explanation": "If String A is a rotation of String B, A will always be a substring of B concatenated with B (B + B).",
+    "algorithm": "1. Check Rotation: Verify if A.length == B.length and (B + B) contains A.\n2. Rotate Left by K: Substring from K to end, concatenated with substring from 0 to K.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(N) for string concatenation",
+    "code": "public class StringRotation {\n    public static boolean isRotation(String s1, String s2) {\n        return (s1.length() == s2.length()) && ((s1 + s1).contains(s2));\n    }\n\n    public static String rotateLeft(String str, int k) {\n        k = k % str.length();\n        return str.substring(k) + str.substring(0, k);\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Is Rotation: \" + isRotation(\"waterbottle\", \"erbottlewat\"));\n        System.out.println(\"Rotate 'Java' by 1: \" + rotateLeft(\"Java\", 1));\n    }\n}",
+    "output": "Is Rotation: true\nRotate 'Java' by 1: avaJ",
+    "id": 10
+  },
+  {
+    "category": "strings",
+    "title": "Level 11: Pattern Matching (KMP Algorithm, Rabin-Karp, Z Algorithm)",
+    "problemStatement": "Implement advanced string searching algorithms: Knuth-Morris-Pratt (KMP) prefix function matching, and Rabin-Karp hashing search.",
+    "explanation": "Naive searches take O(M*N). KMP optimizes searches to O(M+N) by building an LPS (Longest Prefix Suffix) table to prevent backtracking.",
+    "algorithm": "1. KMP: Precalculate LPS array. Iterate text with index i, pattern with index j. If characters match, increment i and j. On mismatches, update j = LPS[j-1] until matches found.",
+    "timeComplexity": "O(M + N) time complexity",
+    "spaceComplexity": "O(M) for LPS array",
+    "code": "public class PatternMatching {\n    public static void KMPSearch(String pat, String txt) {\n        int M = pat.length(), N = txt.length();\n        int[] lps = new int[M];\n        computeLPSArray(pat, M, lps);\n        int i = 0, j = 0;\n        while (i < N) {\n            if (pat.charAt(j) == txt.charAt(i)) { i++; j++; }\n            if (j == M) {\n                System.out.println(\"Pattern found at index \" + (i - j));\n                j = lps[j - 1];\n            } else if (i < N && pat.charAt(j) != txt.charAt(i)) {\n                if (j != 0) j = lps[j - 1];\n                else i++;\n            }\n        }\n    }\n\n    private static void computeLPSArray(String pat, int M, int[] lps) {\n        int len = 0, i = 1;\n        while (i < M) {\n            if (pat.charAt(i) == pat.charAt(len)) {\n                len++; lps[i] = len; i++;\n            } else {\n                if (len != 0) len = lps[len - 1];\n                else { lps[i] = 0; i++; }\n            }\n        }\n    }\n\n    public static void main(String[] args) {\n        KMPSearch(\"ABABC\", \"ABABDABACDABABC\");\n    }\n}",
+    "output": "Pattern found at index 10",
+    "id": 11
+  },
+  {
+    "category": "strings",
+    "title": "Level 12: Word Problems (Sort words, Longest word, Capitalize sentences)",
+    "problemStatement": "Process words in sentences: sort words alphabetically, find the longest word, and capitalize each word.",
+    "explanation": "Word problems are resolved by splitting strings around space delimiters and processing individual array elements.",
+    "algorithm": "1. Capitalize: Split sentence. For each word, capitalize first character, append remainder. Join array back together.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(N) for string buffers",
+    "code": "import java.util.Arrays;\n\npublic class WordProblems {\n    public static String capitalize(String sentence) {\n        String[] words = sentence.split(\"\\\\s+\");\n        StringBuilder sb = new StringBuilder();\n        for (String w : words) {\n            if (w.length() > 0) {\n                sb.append(Character.toUpperCase(w.charAt(0)))\n                  .append(w.substring(1)).append(\" \");\n            }\n        }\n        return sb.toString().trim();\n    }\n\n    public static void main(String[] args) {\n        String s = \"learn java crack interviews\";\n        System.out.println(\"Capitalized: \" + capitalize(s));\n    }\n}",
+    "output": "Capitalized: Learn Java Crack Interviews",
+    "id": 12
+  },
+  {
+    "category": "strings",
+    "title": "Level 13: String Conversion (ATOI string to integer, Roman to Integer)",
+    "problemStatement": "Implement string conversions: String to Integer (ATOI with signs and validations) and Roman to Integer.",
+    "explanation": "ATOI parses numeric characters in order, multiplying previous values by 10 and checking for integer overflow limits. Roman to Integer reads characters from left-to-right, checking if adjacent characters represent subtraction.",
+    "algorithm": "1. ATOI: Skip whitespace. Check signs. Iterate digits. If sum > MAX/10 or sum == MAX/10 and digit > 7, return overflow bounds.\n2. Roman: map characters (I=1, V=5...). If current < next, subtract current from sum, else add current.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "import java.util.*;\n\npublic class StringConversion {\n    public static int myAtoi(String s) {\n        s = s.trim();\n        if (s.isEmpty()) return 0;\n        int sign = 1, i = 0, ans = 0;\n        if (s.charAt(0) == '-') { sign = -1; i++; }\n        else if (s.charAt(0) == '+') i++;\n        while (i < s.length() && Character.isDigit(s.charAt(i))) {\n            int digit = s.charAt(i) - '0';\n            if (ans > Integer.MAX_VALUE / 10 || (ans == Integer.MAX_VALUE / 10 && digit > 7)) {\n                return sign == 1 ? Integer.MAX_VALUE : Integer.MIN_VALUE;\n            }\n            ans = ans * 10 + digit;\n            i++;\n        }\n        return ans * sign;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Parsed ATOI: \" + myAtoi(\"   -42\"));\n    }\n}",
+    "output": "Parsed ATOI: -42",
+    "id": 13
+  },
+  {
+    "category": "strings",
+    "title": "Level 14: Validation (Regex checks: Email, Mobile, Password, IP)",
+    "problemStatement": "Validate formats using Regular Expressions: check Email structures, Mobile Numbers, Passwords, and IP Addresses.",
+    "explanation": "Pattern matching checks if input strings match target formats defined by regular expression (regex) patterns.",
+    "algorithm": "1. Compile regex patterns using Pattern.compile(regex).\n2. Create Matcher instance and run matcher.matches().",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "import java.util.regex.Pattern;\n\npublic class FormatValidation {\n    private static final Pattern EMAIL_PATTERN = \n        Pattern.compile(\"^[A-Za-z0-9+_.-]+@(.+)$\");\n    private static final Pattern IP_PATTERN = \n        Pattern.compile(\"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$\");\n\n    public static boolean isValidEmail(String email) {\n        return EMAIL_PATTERN.matcher(email).matches();\n    }\n\n    public static boolean isValidIP(String ip) {\n        return IP_PATTERN.matcher(ip).matches();\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Email: \" + isValidEmail(\"support@smartcampous.com\"));\n        System.out.println(\"IP: \" + isValidIP(\"192.168.1.1\"));\n    }\n}",
+    "output": "Email: true\nIP: true",
+    "id": 14
+  },
+  {
+    "category": "strings",
+    "title": "Level 15: Lexicographical Problems (String compares, Next Permutation)",
+    "problemStatement": "Perform lexicographical checks: compare strings manually without compareTo(), and generate the Next Permutation of character strings.",
+    "explanation": "Lexicographical order is standard dictionary sorting. Next Permutation swaps character sequences to locate the next highest lexicographical order sequence.",
+    "algorithm": "1. Compare: Iterate characters. If s1[i] != s2[i], return s1[i] - s2[i]. If loop ends, return difference in string lengths.\n2. Next Permutation: Find pivot from right where arr[i] < arr[i+1]. Find element larger than pivot from right. Swap them, and reverse the suffix after pivot.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "public class LexicographicalProblems {\n    public static int compareManual(String s1, String s2) {\n        int lim = Math.min(s1.length(), s2.length());\n        for (int i = 0; i < lim; i++) {\n            if (s1.charAt(i) != s2.charAt(i)) {\n                return s1.charAt(i) - s2.charAt(i);\n            }\n        }\n        return s1.length() - s2.length();\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Compare 'apple' vs 'banana': \" + compareManual(\"apple\", \"banana\"));\n    }\n}",
+    "output": "Compare 'apple' vs 'banana': -1",
+    "id": 15
+  },
+  {
+    "category": "strings",
+    "title": "Level 16: Sliding Window (Longest repeating replacement, Permutation in String)",
+    "problemStatement": "Solve sliding window string problems: Longest Repeating Character Replacement, and Permutation in String (check if string contains anagram of other string).",
+    "explanation": "Using sliding window, maintain character counts inside the window, expanding the right pointer and shrinking the left pointer only when window size - maxFrequency > K.",
+    "algorithm": "1. Character Replacement: Maintain frequency map of window. Expand right. Track maxFrequency in window. If (right - left + 1) - maxFrequency > K, decrement left frequency, increment left. Update max length.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space (using size 26 array)",
+    "code": "public class SlidingWindowStrings {\n    public static int characterReplacement(String s, int k) {\n        int[] count = new int[26];\n        int left = 0, maxFreq = 0, maxLen = 0;\n        for (int right = 0; right < s.length(); right++) {\n            maxFreq = Math.max(maxFreq, ++count[s.charAt(right) - 'A']);\n            if ((right - left + 1) - maxFreq > k) {\n                count[s.charAt(left) - 'A']--;\n                left++;\n            }\n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        return maxLen;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Max Replacement (K=1): \" + characterReplacement(\"AABABBA\", 1));\n    }\n}",
+    "output": "Max Replacement (K=1): 4",
+    "id": 16
+  },
+  {
+    "category": "strings",
+    "title": "Level 17: Dynamic Programming (Edit Distance, LCS, Word Break)",
+    "problemStatement": "Solve string dynamic programming problems: Edit Distance (Levenshtein), Longest Common Subsequence (LCS), and Word Break.",
+    "explanation": "Dynamic programming caches subproblem solutions. Edit Distance tracks the minimum insert, delete, or replace operations required to convert String A to String B.",
+    "algorithm": "1. Edit Distance: Create DP matrix of size (M+1)x(N+1). If characters match: dp[i][j] = dp[i-1][j-1]. Else: dp[i][j] = 1 + min(insert, delete, replace).",
+    "timeComplexity": "O(M * N) time complexity",
+    "spaceComplexity": "O(M * N) space complexity (can be optimized to O(min(M, N)) space)",
+    "code": "public class StringDP {\n    public static int minDistance(String word1, String word2) {\n        int m = word1.length(), n = word2.length();\n        int[][] dp = new int[m + 1][n + 1];\n        for (int i = 0; i <= m; i++) dp[i][0] = i;\n        for (int j = 0; j <= n; j++) dp[0][j] = j;\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                if (word1.charAt(i - 1) == word2.charAt(j - 1)) {\n                    dp[i][j] = dp[i - 1][j - 1];\n                } else {\n                    dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], \n                                   Math.min(dp[i - 1][j], dp[i][j - 1]));\n                }\n            }\n        }\n        return dp[m][n];\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Edit Distance ('horse' -> 'ros'): \" + minDistance(\"horse\", \"ros\"));\n    }\n}",
+    "output": "Edit Distance ('horse' -> 'ros'): 3",
+    "id": 17
+  },
+  {
+    "category": "strings",
+    "title": "Level 18: Recursion (Remove duplicates, Generate permutations)",
+    "problemStatement": "Implement recursive string methods: reverse recursively, remove duplicates recursively, and generate all Permutations of a string.",
+    "explanation": "Permutation generation builds combinations recursively by swapping character indices or partitioning substrings.",
+    "algorithm": "1. Permutations: Base case: if remaining is empty, print candidate. Else, loop through remaining characters, choose current, and recursively call print(remaining - current, candidate + current).",
+    "timeComplexity": "O(N! * N) time complexity (N! combinations)",
+    "spaceComplexity": "O(N) recursion stack depth",
+    "code": "import java.util.*;\n\npublic class StringRecursion {\n    public static List<String> getPermutations(String str) {\n        List<String> result = new ArrayList<>();\n        permute(\"\", str, result);\n        return result;\n    }\n\n    private static void permute(String prefix, String remaining, List<String> list) {\n        int n = remaining.length();\n        if (n == 0) list.add(prefix);\n        else {\n            for (int i = 0; i < n; i++) {\n                permute(prefix + remaining.charAt(i), \n                        remaining.substring(0, i) + remaining.substring(i + 1, n), \n                        list);\n            }\n        }\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Permutations: \" + getPermutations(\"abc\"));\n    }\n}",
+    "output": "Permutations: [abc, acb, bac, bca, cab, cba]",
+    "id": 18
+  },
+  {
+    "category": "strings",
+    "title": "Level 19: Backtracking (Restore IP addresses, Word Search, Palindrome Partitioning)",
+    "problemStatement": "Implement backtracking: Restore IP Addresses (generate valid IPv4 blocks), and Palindrome Partitioning.",
+    "explanation": "Backtracking explores all potential decision paths, reversing (pruning) changes when validation rules fail.",
+    "algorithm": "1. Palindrome Partitioning: Loop index i from start to end. If substring(start, i) is a palindrome, add to partition list, recursively call dfs(i+1), then remove substring (backtrack).",
+    "timeComplexity": "O(N * 2^N) time complexity",
+    "spaceComplexity": "O(N) recursion stack depth",
+    "code": "import java.util.*;\n\npublic class StringBacktracking {\n    public static List<List<String>> partition(String s) {\n        List<List<String>> res = new ArrayList<>();\n        dfs(0, s, new ArrayList<>(), res);\n        return res;\n    }\n\n    private static void dfs(int start, String s, List<String> path, List<List<String>> res) {\n        if (start == s.length()) {\n            res.add(new ArrayList<>(path));\n            return;\n        }\n        for (int i = start; i < s.length(); i++) {\n            if (isPalindrome(s, start, i)) {\n                path.add(s.substring(start, i + 1));\n                dfs(i + 1, s, path, res);\n                path.remove(path.size() - 1); // Backtrack\n            }\n        }\n    }\n\n    private static boolean isPalindrome(String s, int l, int r) {\n        while (l < r) {\n            if (s.charAt(l++) != s.charAt(r--)) return false;\n        }\n        return true;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Partitions: \" + partition(\"aab\"));\n    }\n}",
+    "output": "Partitions: [[a, a, b], [aa, b]]",
+    "id": 19
+  },
+  {
+    "category": "strings",
+    "title": "Level 20: HashMap Based (Isomorphic Strings, Word Pattern)",
+    "problemStatement": "Solve HashMap-based string problems: check if strings are Isomorphic, and verify if a string matches a Word Pattern.",
+    "explanation": "Isomorphic strings have a 1-to-1 character mapping (e.g. 'egg' and 'add'). Word Pattern maps characters to words in a sentence.",
+    "algorithm": "1. Isomorphic: Maintain two maps. Map character from A to B, and B to A. If mapping exists and mismatches, return false. Else, record mappings.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(K) where K is unique character count",
+    "code": "import java.util.HashMap;\n\npublic class HashMapStrings {\n    public static boolean isIsomorphic(String s, String t) {\n        if (s.length() != t.length()) return false;\n        HashMap<Character, Character> mapS = new HashMap<>();\n        HashMap<Character, Character> mapT = new HashMap<>();\n        for (int i = 0; i < s.length(); i++) {\n            char charS = s.charAt(i);\n            char charT = t.charAt(i);\n            if (mapS.containsKey(charS) && mapS.get(charS) != charT) return false;\n            if (mapT.containsKey(charT) && mapT.get(charT) != charS) return false;\n            mapS.put(charS, charT);\n            mapT.put(charT, charS);\n        }\n        return true;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Isomorphic ('egg', 'add'): \" + isIsomorphic(\"egg\", \"add\"));\n    }\n}",
+    "output": "Isomorphic ('egg', 'add'): true",
+    "id": 20
+  },
+  {
+    "category": "strings",
+    "title": "Level 21: Stack Based (Remove Adjacent Duplicates, Decode String)",
+    "problemStatement": "Solve Stack-based string challenges: Remove All Adjacent Duplicates, and Decode String (decompress bracket sequences e.g. 3[a]2[bc]).",
+    "explanation": "Stacks process nested or adjacent character contexts. For Decode String, two stacks (one for repeating counts, one for string buffers) manage nested bracket contexts.",
+    "algorithm": "1. Decode String: Iterate characters. If digit, build count. If '[', push count and current buffer to stacks, reset count and buffer. If ']', pop count and prefix, append repeated buffer to prefix. If character, append to buffer.",
+    "timeComplexity": "O(N) time complexity (where N is output string length)",
+    "spaceComplexity": "O(N) stack storage depth",
+    "code": "import java.util.Stack;\n\npublic class StackStrings {\n    public static String decodeString(String s) {\n        Stack<Integer> countStack = new Stack<>();\n        Stack<StringBuilder> resStack = new Stack<>();\n        StringBuilder curr = new StringBuilder();\n        int k = 0;\n        for (char ch : s.toCharArray()) {\n            if (Character.isDigit(ch)) {\n                k = k * 10 + (ch - '0');\n            } else if (ch == '[') {\n                countStack.push(k);\n                resStack.push(curr);\n                curr = new StringBuilder();\n                k = 0;\n            } else if (ch == ']') {\n                StringBuilder decoded = resStack.pop();\n                int repeat = countStack.pop();\n                for (int i = 0; i < repeat; i++) decoded.append(curr);\n                curr = decoded;\n            } else {\n                curr.append(ch);\n            }\n        }\n        return curr.toString();\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Decoded String: \" + decodeString(\"3[a]2[bc]\"));\n    }\n}",
+    "output": "Decoded String: aaabcbc",
+    "id": 21
+  },
+  {
+    "category": "strings",
+    "title": "Level 22: Advanced String (Large Number Multiplication, Add Large Numbers)",
+    "problemStatement": "Solve advanced string operations: Add and Multiply Large Numbers represented as Strings (solving BigInteger challenges).",
+    "explanation": "Because primitive types overflow, large numbers are processed character-by-character from right-to-left, maintaining carry values.",
+    "algorithm": "1. Multiply: Create result array of size M+N. Loop i from M-1 to 0, j from N-1 to 0. Product = digit1 * digit2 + arr[i+j+1]. Write product%10 to arr[i+j+1], add product/10 to carry cell arr[i+j].",
+    "timeComplexity": "O(M * N) time complexity",
+    "spaceComplexity": "O(M + N) space complexity",
+    "code": "public class AdvancedStrings {\n    public static String multiply(String num1, String num2) {\n        if (\"0\".equals(num1) || \"0\".equals(num2)) return \"0\";\n        int m = num1.length(), n = num2.length();\n        int[] pos = new int[m + n];\n        for (int i = m - 1; i >= 0; i--) {\n            for (int j = n - 1; j >= 0; j--) {\n                int mul = (num1.charAt(i) - '0') * (num2.charAt(j) - '0');\n                int sum = mul + pos[i + j + 1];\n                pos[i + j + 1] = sum % 10;\n                pos[i + j] += sum / 10;\n            }\n        }\n        StringBuilder sb = new StringBuilder();\n        for (int p : pos) if (!(sb.length() == 0 && p == 0)) sb.append(p);\n        return sb.toString();\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Multiplied: \" + multiply(\"123\", \"456\"));\n    }\n}",
+    "output": "Multiplied: 56088",
+    "id": 22
+  },
+  {
+    "category": "strings",
+    "title": "Level 23: Java String Internals (Immutability, SCP, intern() optimizations)",
+    "problemStatement": "A comprehensive deep dive guide into JVM String Internals: immutability reasons, String Constant Pool (SCP) allocations, and intern() method garbage optimization.",
+    "explanation": "Java Strings are compiled with special optimizations. Literals are registered in the SCP during compile-time, saving memory. Immutability guarantees security parameters in classloading and network setups, and thread safety across tasks.",
+    "algorithm": "1. Heap allocation vs String Constant Pool allocation dynamics.\n2. Manual SCP caching using the intern() API.\n3. String concatenation optimizations (compile-time constant folding vs runtime StringBuilder appending).",
+    "timeComplexity": "O(1) reference comparisons using == vs O(N) equals() scans",
+    "spaceComplexity": "O(1) heap allocations for shared SCP literals",
+    "code": "public class StringInternalsDemo {\n    public static void main(String[] args) {\n        // String Literals -> Stored in String Constant Pool (SCP)\n        String s1 = \"hello\";\n        String s2 = \"hello\";\n        System.out.println(\"s1 == s2: \" + (s1 == s2)); // true (Same reference in SCP)\n\n        // new String -> Stored in standard Heap (different reference)\n        String s3 = new String(\"hello\");\n        System.out.println(\"s1 == s3: \" + (s1 == s3)); // false (Different reference)\n\n        // intern() -> Forces reference query from SCP\n        String s4 = s3.intern();\n        System.out.println(\"s1 == s4: \" + (s1 == s4)); // true (Shares SCP reference now!)\n    }\n}",
+    "output": "s1 == s2: true\ns1 == s3: false\ns1 == s4: true",
+    "id": 23
+  },
+  {
+    "category": "strings",
+    "title": "Level 24: Mutable Strings (StringBuilder vs StringBuffer internals)",
+    "problemStatement": "Compare and implement mutable string buffer structures: StringBuilder (fast, single-thread) vs StringBuffer (thread-safe, synchronized methods).",
+    "explanation": "Because String is immutable, modifying strings in loops creates garbage. StringBuilder modifies a mutable, resizable char/byte array buffer in-place. StringBuffer uses synchronized methods, protecting access across threads at the cost of synchronization overhead.",
+    "algorithm": "1. Buffer resizing: If size exceeds capacity, allocate double capacity + 2, and copy elements over.\n2. append() and insert() edit the underlying char array directly, avoiding garbage generation.",
+    "timeComplexity": "O(1) amortized appends; O(N) for mid-inserts and resizes",
+    "spaceComplexity": "O(N) buffer capacity allocations",
+    "code": "public class MutableStringsDemo {\n    public static void main(String[] args) {\n        // StringBuilder -> Fast, non-thread-safe\n        StringBuilder sb = new StringBuilder(\"Java\");\n        sb.append(\" Master\");\n        System.out.println(\"Builder Content: \" + sb);\n\n        // StringBuffer -> Thread-safe, synchronized\n        StringBuffer sBuffer = new StringBuffer(\"ThreadSafe\");\n        sBuffer.append(\" Buffer\");\n        System.out.println(\"Buffer Content: \" + sBuffer);\n    }\n}",
+    "output": "Builder Content: Java Master\nBuffer Content: ThreadSafe Buffer",
+    "id": 24
+  },
+  {
+    "category": "strings",
+    "title": "Level 25: Frequently Asked Coding Questions (FAANG Favorites)",
+    "problemStatement": "Practice top interview questions: Reverse a String, Valid Anagram, Longest Common Prefix, String Compression, and Valid Parentheses.",
+    "explanation": "This module consolidates the most frequently asked String coding challenges in FAANG interviews, showing clean, optimal implementations.",
+    "algorithm": "1. Anagram: Sort character keys or count frequencies.\n2. Compression: Track running characters and frequencies.\n3. Parentheses: Push open brackets to stack, pop and check matches on closing brackets.",
+    "timeComplexity": "O(N) average time complexity",
+    "spaceComplexity": "O(N) for stack/builders",
+    "code": "import java.util.Stack;\n\npublic class FaangFavorites {\n    public static boolean isValidParentheses(String s) {\n        Stack<Character> stack = new Stack<>();\n        for (char c : s.toCharArray()) {\n            if (c == '(') stack.push(')');\n            else if (c == '{') stack.push('}');\n            else if (c == '[') stack.push(']');\n            else if (stack.isEmpty() || stack.pop() != c) return false;\n        }\n        return stack.isEmpty();\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Is Valid '()[]{}': \" + isValidParentheses(\"()[]{}\"));\n        System.out.println(\"Is Valid '([)]': \" + isValidParentheses(\"([)]\"));\n    }\n}",
+    "output": "Is Valid '()[]{}': true\nIs Valid '([)]': false",
+    "id": 25
+  },
+  {
     "category": "arrays",
     "title": "Level 1: Array Basics (Print, Reverse, Copy, Clone, Get Middle)",
     "problemStatement": "Implement basic operations on 1D arrays: print elements, reverse elements, copy, clone, find length, and access first, last, and middle elements.",
@@ -9,7 +309,7 @@
     "spaceComplexity": "O(1) auxiliary for reverse; O(N) for copy/clone",
     "code": "public class ArrayBasics {\n    public static void printArray(int[] arr) {\n        System.out.print(\"Array: [\");\n        for (int i = 0; i < arr.length; i++) {\n            System.out.print(arr[i] + (i == arr.length - 1 ? \"\" : \", \"));\n        }\n        System.out.println(\"]\");\n    }\n\n    public static void reverseArray(int[] arr) {\n        int left = 0, right = arr.length - 1;\n        while (left < right) {\n            int temp = arr[left];\n            arr[left] = arr[right];\n            arr[right] = temp;\n            left++;\n            right--;\n        }\n    }\n\n    public static int[] copyArray(int[] arr) {\n        int[] copy = new int[arr.length];\n        System.arraycopy(arr, 0, copy, 0, arr.length);\n        return copy;\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {10, 20, 30, 40, 50};\n        printArray(arr);\n        System.out.println(\"First: \" + arr[0] + \", Last: \" + arr[arr.length - 1] + \", Middle: \" + arr[arr.length / 2]);\n        \n        reverseArray(arr);\n        System.out.print(\"Reversed \");\n        printArray(arr);\n        \n        int[] cloned = arr.clone();\n        System.out.println(\"Cloned Array Length: \" + cloned.length);\n    }\n}",
     "output": "Array: [10, 20, 30, 40, 50]\nFirst: 10, Last: 50, Middle: 30\nReversed Array: [50, 40, 30, 20, 10]\nCloned Array Length: 5",
-    "id": 1
+    "id": 26
   },
   {
     "category": "arrays",
@@ -21,7 +321,7 @@
     "spaceComplexity": "O(1) auxiliary",
     "code": "public class ArraySearching {\n    public static int linearSearch(int[] arr, int target) {\n        for (int i = 0; i < arr.length; i++) {\n            if (arr[i] == target) return i;\n        }\n        return -1;\n    }\n\n    public static int binarySearch(int[] arr, int target) {\n        int low = 0, high = arr.length - 1;\n        while (low <= high) {\n            int mid = low + (high - low) / 2;\n            if (arr[mid] == target) return mid;\n            else if (arr[mid] < target) low = mid + 1;\n            else high = mid - 1;\n        }\n        return -1;\n    }\n\n    public static int lowerBound(int[] arr, int target) {\n        int low = 0, high = arr.length - 1;\n        int ans = arr.length;\n        while (low <= high) {\n            int mid = low + (high - low) / 2;\n            if (arr[mid] >= target) {\n                ans = mid;\n                high = mid - 1; // Look on left for lower index\n            } else {\n                low = mid + 1;\n            }\n        }\n        return ans;\n    }\n\n    public static void main(String[] args) {\n        int[] unsorted = {4, 2, 8, 5, 2, 9};\n        int[] sorted = {2, 3, 5, 5, 8, 9};\n        System.out.println(\"Linear Search: \" + linearSearch(unsorted, 5));\n        System.out.println(\"Binary Search: \" + binarySearch(sorted, 8));\n        System.out.println(\"Lower Bound of 5: \" + lowerBound(sorted, 5));\n    }\n}",
     "output": "Linear Search: 3\nBinary Search: 4\nLower Bound of 5: 2",
-    "id": 2
+    "id": 27
   },
   {
     "category": "arrays",
@@ -33,7 +333,7 @@
     "spaceComplexity": "O(K) auxiliary space for heap",
     "code": "import java.util.PriorityQueue;\n\npublic class MinMaxProblems {\n    public static int getSecondLargest(int[] arr) {\n        int largest = Integer.MIN_VALUE, second = Integer.MIN_VALUE;\n        for (int num : arr) {\n            if (num > largest) {\n                second = largest;\n                largest = num;\n            } else if (num > second && num != largest) {\n                second = num;\n            }\n        }\n        return second;\n    }\n\n    public static int getKthLargest(int[] arr, int k) {\n        PriorityQueue<Integer> minHeap = new PriorityQueue<>();\n        for (int num : arr) {\n            minHeap.add(num);\n            if (minHeap.size() > k) {\n                minHeap.poll();\n            }\n        }\n        return minHeap.peek();\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {12, 35, 1, 10, 34, 1};\n        System.out.println(\"Second Largest: \" + getSecondLargest(arr));\n        System.out.println(\"3rd Largest: \" + getKthLargest(arr, 3));\n    }\n}",
     "output": "Second Largest: 34\n3rd Largest: 12",
-    "id": 3
+    "id": 28
   },
   {
     "category": "arrays",
@@ -45,7 +345,7 @@
     "spaceComplexity": "O(N) for HashMap; O(1) for two-pointer sorting",
     "code": "import java.util.*;\n\npublic class SumProblems {\n    public static List<List<Integer>> threeSum(int[] nums) {\n        Arrays.sort(nums);\n        List<List<Integer>> res = new ArrayList<>();\n        for (int i = 0; i < nums.length - 2; i++) {\n            if (i > 0 && nums[i] == nums[i - 1]) continue; // Skip duplicates\n            int left = i + 1, right = nums.length - 1;\n            while (left < right) {\n                int sum = nums[i] + nums[left] + nums[right];\n                if (sum == 0) {\n                    res.add(Arrays.asList(nums[i], nums[left], nums[right]));\n                    while (left < right && nums[left] == nums[left + 1]) left++; // Skip duplicates\n                    while (left < right && nums[right] == nums[right - 1]) right--; // Skip duplicates\n                    left++; right--;\n                } else if (sum < 0) left++;\n                else right--;\n            }\n        }\n        return res;\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {-1, 0, 1, 2, -1, -4};\n        System.out.println(\"Three Sum Triplets: \" + threeSum(nums));\n    }\n}",
     "output": "Three Sum Triplets: [[-1, -1, 2], [-1, 0, 1]]",
-    "id": 4
+    "id": 29
   },
   {
     "category": "arrays",
@@ -57,7 +357,7 @@
     "spaceComplexity": "O(1) auxiliary space (using Boyer-Moore)",
     "code": "import java.util.*;\n\npublic class FrequencyProblems {\n    public static int getMajorityElement(int[] nums) {\n        int count = 0, candidate = 0;\n        for (int num : nums) {\n            if (count == 0) candidate = num;\n            count += (num == candidate) ? 1 : -1;\n        }\n        return candidate;\n    }\n\n    public static List<Integer> majorityElementTwo(int[] nums) {\n        int number1 = 0, number2 = 0, count1 = 0, count2 = 0;\n        for (int num : nums) {\n            if (num == number1) count1++;\n            else if (num == number2) count2++;\n            else if (count1 == 0) { number1 = num; count1 = 1; }\n            else if (count2 == 0) { number2 = num; count2 = 1; }\n            else { count1--; count2--; }\n        }\n        // Verify candidates\n        count1 = 0; count2 = 0;\n        for (int num : nums) {\n            if (num == number1) count1++;\n            else if (num == number2) count2++;\n        }\n        List<Integer> result = new ArrayList<>();\n        if (count1 > nums.length / 3) result.add(number1);\n        if (count2 > nums.length / 3) result.add(number2);\n        return result;\n    }\n\n    public static void main(String[] args) {\n        int[] arr1 = {2, 2, 1, 1, 1, 2, 2};\n        int[] arr2 = {1, 1, 1, 3, 3, 2, 2, 2};\n        System.out.println(\"Majority (N/2): \" + getMajorityElement(arr1));\n        System.out.println(\"Majority (N/3): \" + majorityElementTwo(arr2));\n    }\n}",
     "output": "Majority (N/2): 2\nMajority (N/3): [1, 2]",
-    "id": 5
+    "id": 30
   },
   {
     "category": "arrays",
@@ -69,7 +369,7 @@
     "spaceComplexity": "O(1) auxiliary space",
     "code": "public class ArrayRotation {\n    public static void rotate(int[] nums, int k) {\n        k = k % nums.length;\n        reverse(nums, 0, nums.length - 1);\n        reverse(nums, 0, k - 1);\n        reverse(nums, k, nums.length - 1);\n    }\n\n    private static void reverse(int[] nums, int start, int end) {\n        while (start < end) {\n            int temp = nums[start];\n            nums[start] = nums[end];\n            nums[end] = temp;\n            start++; end--;\n        }\n    }\n\n    public static void rotateMatrix(int[][] matrix) {\n        int n = matrix.length;\n        // Transpose\n        for (int i = 0; i < n; i++) {\n            for (int j = i; j < n; j++) {\n                int temp = matrix[i][j];\n                matrix[i][j] = matrix[j][i];\n                matrix[j][i] = temp;\n            }\n        }\n        // Reverse rows\n        for (int i = 0; i < n; i++) {\n            for (int j = 0; j < n / 2; j++) {\n                int temp = matrix[i][j];\n                matrix[i][j] = matrix[i][n - 1 - j];\n                matrix[i][n - 1 - j] = temp;\n            }\n        }\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {1, 2, 3, 4, 5};\n        rotate(arr, 2);\n        System.out.print(\"Rotated Array: \");\n        for (int x : arr) System.out.print(x + \" \");\n        System.out.println();\n    }\n}",
     "output": "Rotated Array: 4 5 1 2 3 ",
-    "id": 6
+    "id": 31
   },
   {
     "category": "arrays",
@@ -81,7 +381,7 @@
     "spaceComplexity": "O(1) auxiliary space",
     "code": "public class ArrayRearrange {\n    public static void moveZeroes(int[] nums) {\n        int lastNonZero = 0;\n        for (int i = 0; i < nums.length; i++) {\n            if (nums[i] != 0) {\n                int temp = nums[i];\n                nums[i] = nums[lastNonZero];\n                nums[lastNonZero] = temp;\n                lastNonZero++;\n            }\n        }\n    }\n\n    public static void sortColors(int[] nums) {\n        int low = 0, mid = 0, high = nums.length - 1;\n        while (mid <= high) {\n            if (nums[mid] == 0) {\n                swap(nums, low++, mid++);\n            } else if (nums[mid] == 1) {\n                mid++;\n            } else {\n                swap(nums, mid, high--);\n            }\n        }\n    }\n\n    private static void swap(int[] nums, int i, int j) {\n        int temp = nums[i];\n        nums[i] = nums[j];\n        nums[j] = temp;\n    }\n\n    public static void main(String[] args) {\n        int[] arr1 = {0, 1, 0, 3, 12};\n        int[] arr2 = {2, 0, 2, 1, 1, 0};\n        moveZeroes(arr1);\n        sortColors(arr2);\n        System.out.print(\"Moved Zeros: \");\n        for (int x : arr1) System.out.print(x + \" \");\n        System.out.print(\"\\nSorted Colors: \");\n        for (int x : arr2) System.out.print(x + \" \");\n        System.out.println();\n    }\n}",
     "output": "Moved Zeros: 1 3 12 0 0 \nSorted Colors: 0 0 1 1 2 2 ",
-    "id": 7
+    "id": 32
   },
   {
     "category": "arrays",
@@ -93,7 +393,7 @@
     "spaceComplexity": "O(N) for Merge Sort; O(log N) recursion stack for Quick Sort",
     "code": "public class ArraySortingAlgorithms {\n    public static void quickSort(int[] arr, int low, int high) {\n        if (low < high) {\n            int pIndex = partition(arr, low, high);\n            quickSort(arr, low, pIndex - 1);\n            quickSort(arr, pIndex + 1, high);\n        }\n    }\n\n    private static int partition(int[] arr, int low, int high) {\n        int pivot = arr[high];\n        int i = low - 1;\n        for (int j = low; j < high; j++) {\n            if (arr[j] < pivot) {\n                i++;\n                swap(arr, i, j);\n            }\n        }\n        swap(arr, i + 1, high);\n        return i + 1;\n    }\n\n    private static void swap(int[] arr, int i, int j) {\n        int temp = arr[i];\n        arr[i] = arr[j];\n        arr[j] = temp;\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {64, 34, 25, 12, 22, 11, 90};\n        quickSort(arr, 0, arr.length - 1);\n        System.out.print(\"Quick Sorted: \");\n        for (int x : arr) System.out.print(x + \" \");\n        System.out.println();\n    }\n}",
     "output": "Quick Sorted: 11 12 22 25 34 64 90 ",
-    "id": 8
+    "id": 33
   },
   {
     "category": "arrays",
@@ -105,7 +405,7 @@
     "spaceComplexity": "O(N) for HashMap in Subarray Sum Equals K",
     "code": "import java.util.HashMap;\n\npublic class PrefixSumProblems {\n    public static int subarraySum(int[] nums, int k) {\n        int count = 0, sum = 0;\n        HashMap<Integer, Integer> map = new HashMap<>();\n        map.put(0, 1); // Base case: prefix sum is 0\n        for (int num : nums) {\n            sum += num;\n            if (map.containsKey(sum - k)) {\n                count += map.get(sum - k);\n            }\n            map.put(sum, map.getOrDefault(sum, 0) + 1);\n        }\n        return count;\n    }\n\n    public static int pivotIndex(int[] nums) {\n        int totalSum = 0, leftSum = 0;\n        for (int num : nums) totalSum += num;\n        for (int i = 0; i < nums.length; i++) {\n            if (leftSum == totalSum - leftSum - nums[i]) return i;\n            leftSum += nums[i];\n        }\n        return -1;\n    }\n\n    public static void main(String[] args) {\n        int[] arr1 = {1, 1, 1};\n        int[] arr2 = {1, 7, 3, 6, 5, 6};\n        System.out.println(\"Subarrays with sum 2: \" + subarraySum(arr1, 2));\n        System.out.println(\"Pivot Index: \" + pivotIndex(arr2));\n    }\n}",
     "output": "Subarrays with sum 2: 2\nPivot Index: 3",
-    "id": 9
+    "id": 34
   },
   {
     "category": "arrays",
@@ -117,7 +417,7 @@
     "spaceComplexity": "O(1) auxiliary space",
     "code": "public class SlidingWindow {\n    public static int maxSubarraySumK(int[] arr, int k) {\n        int max = 0, windowSum = 0;\n        for (int i = 0; i < k; i++) windowSum += arr[i];\n        max = windowSum;\n        for (int i = k; i < arr.length; i++) {\n            windowSum += arr[i] - arr[i - k];\n            max = Math.max(max, windowSum);\n        }\n        return max;\n    }\n\n    public static int longestOnes(int[] nums, int k) {\n        int left = 0, right;\n        for (right = 0; right < nums.length; right++) {\n            if (nums[right] == 0) k--;\n            if (k < 0) {\n                if (nums[left] == 0) k++;\n                left++;\n            }\n        }\n        return right - left;\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {100, 200, 300, 400};\n        int[] binary = {1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0};\n        System.out.println(\"Max Sum Subarray Size 2: \" + maxSubarraySumK(arr, 2));\n        System.out.println(\"Longest Ones (K=2): \" + longestOnes(binary, 2));\n    }\n}",
     "output": "Max Sum Subarray Size 2: 700\nLongest Ones (K=2): 6",
-    "id": 10
+    "id": 35
   },
   {
     "category": "arrays",
@@ -129,7 +429,7 @@
     "spaceComplexity": "O(1) auxiliary space",
     "code": "public class TwoPointerProblems {\n    public static int removeDuplicates(int[] nums) {\n        if (nums.length == 0) return 0;\n        int i = 0;\n        for (int j = 1; j < nums.length; j++) {\n            if (nums[j] != nums[i]) {\n                i++;\n                nums[i] = nums[j];\n            }\n        }\n        return i + 1;\n    }\n\n    public static int maxArea(int[] height) {\n        int max = 0, left = 0, right = height.length - 1;\n        while (left < right) {\n            int area = (right - left) * Math.min(height[left], height[right]);\n            max = Math.max(max, area);\n            if (height[left] < height[right]) left++;\n            else right--;\n        }\n        return max;\n    }\n\n    public static void main(String[] args) {\n        int[] dup = {1, 1, 2, 2, 3};\n        int[] heights = {1, 8, 6, 2, 5, 4, 8, 3, 7};\n        System.out.println(\"Unique count: \" + removeDuplicates(dup));\n        System.out.println(\"Max Water Container: \" + maxArea(heights));\n    }\n}",
     "output": "Unique count: 3\nMax Water Container: 49",
-    "id": 11
+    "id": 36
   },
   {
     "category": "arrays",
@@ -141,7 +441,7 @@
     "spaceComplexity": "O(1) auxiliary space",
     "code": "public class KadanesAlgorithm {\n    public static int maxSubArray(int[] nums) {\n        int maxSoFar = nums[0], maxEndingHere = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            maxEndingHere = Math.max(nums[i], maxEndingHere + nums[i]);\n            maxSoFar = Math.max(maxSoFar, maxEndingHere);\n        }\n        return maxSoFar;\n    }\n\n    public static int maxProduct(int[] nums) {\n        int max = nums[0], min = nums[0], res = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            if (nums[i] < 0) {\n                int temp = max;\n                max = min;\n                min = temp;\n            }\n            max = Math.max(nums[i], max * nums[i]);\n            min = Math.min(nums[i], min * nums[i]);\n            res = Math.max(res, max);\n        }\n        return res;\n    }\n\n    public static void main(String[] args) {\n        int[] arr1 = {-2, 1, -3, 4, -1, 2, 1, -5, 4};\n        int[] arr2 = {2, 3, -2, 4};\n        System.out.println(\"Max Subarray Sum: \" + maxSubArray(arr1));\n        System.out.println(\"Max Product Subarray: \" + maxProduct(arr2));\n    }\n}",
     "output": "Max Subarray Sum: 6\nMax Product Subarray: 6",
-    "id": 12
+    "id": 37
   },
   {
     "category": "arrays",
@@ -153,7 +453,7 @@
     "spaceComplexity": "O(1) auxiliary space",
     "code": "import java.util.*;\n\npublic class MatrixProblems {\n    public static List<Integer> spiralOrder(int[][] matrix) {\n        List<Integer> res = new ArrayList<>();\n        if (matrix.length == 0) return res;\n        int top = 0, bottom = matrix.length - 1;\n        int left = 0, right = matrix[0].length - 1;\n        while (top <= bottom && left <= right) {\n            for (int i = left; i <= right; i++) res.add(matrix[top][i]);\n            top++;\n            for (int i = top; i <= bottom; i++) res.add(matrix[i][right]);\n            right--;\n            if (top <= bottom) {\n                for (int i = right; i >= left; i--) res.add(matrix[bottom][i]);\n                bottom--;\n            }\n            if (left <= right) {\n                for (int i = bottom; i >= top; i--) res.add(matrix[i][left]);\n                left++;\n            }\n        }\n        return res;\n    }\n\n    public static boolean searchMatrix(int[][] matrix, int target) {\n        int m = matrix.length, n = matrix[0].length;\n        int low = 0, high = m * n - 1;\n        while (low <= high) {\n            int mid = low + (high - low) / 2;\n            int r = mid / n, c = mid % n;\n            if (matrix[r][c] == target) return true;\n            else if (matrix[r][c] < target) low = mid + 1;\n            else high = mid - 1;\n        }\n        return false;\n    }\n\n    public static void main(String[] args) {\n        int[][] mat = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};\n        System.out.println(\"Spiral Order: \" + spiralOrder(mat));\n        System.out.println(\"Search 5: \" + searchMatrix(mat, 5));\n    }\n}",
     "output": "Spiral Order: [1, 2, 3, 6, 9, 8, 7, 4, 5]\nSearch 5: true",
-    "id": 13
+    "id": 38
   },
   {
     "category": "arrays",
@@ -165,7 +465,7 @@
     "spaceComplexity": "O(N) for output intervals storage",
     "code": "import java.util.*;\n\npublic class IntervalProblems {\n    public static int[][] mergeIntervals(int[][] intervals) {\n        if (intervals.length <= 1) return intervals;\n        Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));\n        List<int[]> merged = new ArrayList<>();\n        int[] current = intervals[0];\n        merged.add(current);\n        for (int[] interval : intervals) {\n            if (interval[0] <= current[1]) {\n                current[1] = Math.max(current[1], interval[1]); // Merge\n            } else {\n                current = interval;\n                merged.add(current);\n            }\n        }\n        return merged.toArray(new int[merged.size()][]);\n    }\n\n    public static void main(String[] args) {\n        int[][] intervals = {{1, 3}, {2, 6}, {8, 10}, {15, 18}};\n        int[][] res = mergeIntervals(intervals);\n        System.out.print(\"Merged Intervals: \");\n        for (int[] in : res) System.out.print(Arrays.toString(in) + \" \");\n        System.out.println();\n    }\n}",
     "output": "Merged Intervals: [1, 6] [8, 10] [15, 18] ",
-    "id": 14
+    "id": 39
   },
   {
     "category": "arrays",
@@ -177,7 +477,7 @@
     "spaceComplexity": "O(N) to store elements in Set",
     "code": "import java.util.*;\n\npublic class HashProblems {\n    public static int longestConsecutive(int[] nums) {\n        Set<Integer> set = new HashSet<>();\n        for (int num : nums) set.add(num);\n        int max = 0;\n        for (int num : nums) {\n            if (!set.contains(num - 1)) { // Start of sequence\n                int current = num;\n                int currentStreak = 1;\n                while (set.contains(current + 1)) {\n                    current++;\n                    currentStreak++;\n                }\n                max = Math.max(max, currentStreak);\n            }\n        }\n        return max;\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {100, 4, 200, 1, 3, 2};\n        System.out.println(\"Longest Consecutive: \" + longestConsecutive(nums));\n    }\n}",
     "output": "Longest Consecutive: 4",
-    "id": 15
+    "id": 40
   },
   {
     "category": "arrays",
@@ -189,7 +489,7 @@
     "spaceComplexity": "O(1) auxiliary space",
     "code": "public class AdvancedBinarySearch {\n    public static int searchRotated(int[] nums, int target) {\n        int low = 0, high = nums.length - 1;\n        while (low <= high) {\n            int mid = low + (high - low) / 2;\n            if (nums[mid] == target) return mid;\n            if (nums[low] <= nums[mid]) { // Left half sorted\n                if (target >= nums[low] && target < nums[mid]) high = mid - 1;\n                else low = mid + 1;\n            } else { // Right half sorted\n                if (target > nums[mid] && target <= nums[high]) low = mid + 1;\n                else high = mid - 1;\n            }\n        }\n        return -1;\n    }\n\n    public static int findPeakElement(int[] nums) {\n        int low = 0, high = nums.length - 1;\n        while (low < high) {\n            int mid = low + (high - low) / 2;\n            if (nums[mid] > nums[mid + 1]) high = mid; // Descending slope\n            else low = mid + 1; // Ascending slope\n        }\n        return low;\n    }\n\n    public static void main(String[] args) {\n        int[] rotated = {4, 5, 6, 7, 0, 1, 2};\n        int[] mountain = {1, 2, 3, 1};\n        System.out.println(\"Index of 0: \" + searchRotated(rotated, 0));\n        System.out.println(\"Peak index: \" + findPeakElement(mountain));\n    }\n}",
     "output": "Index of 0: 4\nPeak index: 2",
-    "id": 16
+    "id": 41
   },
   {
     "category": "arrays",
@@ -201,7 +501,7 @@
     "spaceComplexity": "O(1) auxiliary space",
     "code": "public class GreedyProblems {\n    public static boolean canJump(int[] nums) {\n        int maxReach = 0;\n        for (int i = 0; i < nums.length; i++) {\n            if (i > maxReach) return false;\n            maxReach = Math.max(maxReach, i + nums[i]);\n        }\n        return true;\n    }\n\n    public static int maxProfit(int[] prices) {\n        if (prices.length == 0) return 0;\n        int minPrice = prices[0], maxProfit = 0;\n        for (int i = 1; i < prices.length; i++) {\n            minPrice = Math.min(minPrice, prices[i]);\n            maxProfit = Math.max(maxProfit, prices[i] - minPrice);\n        }\n        return maxProfit;\n    }\n\n    public static void main(String[] args) {\n        int[] path = {2, 3, 1, 1, 4};\n        int[] prices = {7, 1, 5, 3, 6, 4};\n        System.out.println(\"Can Jump: \" + canJump(path));\n        System.out.println(\"Max Stock Profit: \" + maxProfit(prices));\n    }\n}",
     "output": "Can Jump: true\nMax Stock Profit: 5",
-    "id": 17
+    "id": 42
   },
   {
     "category": "arrays",
@@ -213,7 +513,7 @@
     "spaceComplexity": "O(N) for stack storage",
     "code": "import java.util.*;\n\npublic class MonotonicStackProblems {\n    public static int[] nextGreaterElement(int[] nums) {\n        int[] res = new int[nums.length];\n        Stack<Integer> stack = new Stack<>();\n        for (int i = nums.length - 1; i >= 0; i--) {\n            while (!stack.isEmpty() && stack.peek() <= nums[i]) {\n                stack.pop();\n            }\n            res[i] = stack.isEmpty() ? -1 : stack.peek();\n            stack.push(nums[i]);\n        }\n        return res;\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {4, 5, 2, 25};\n        int[] g = nextGreaterElement(arr);\n        System.out.print(\"Next Greater Elements: \");\n        for (int x : g) System.out.print(x + \" \");\n        System.out.println();\n    }\n}",
     "output": "Next Greater Elements: 5 25 25 -1 ",
-    "id": 18
+    "id": 43
   },
   {
     "category": "arrays",
@@ -225,7 +525,7 @@
     "spaceComplexity": "O(1) auxiliary space",
     "code": "public class XorProblems {\n    public static int singleNumber(int[] nums) {\n        int xor = 0;\n        for (int num : nums) xor ^= num;\n        return xor;\n    }\n\n    public static int missingNumber(int[] nums) {\n        int xor = nums.length;\n        for (int i = 0; i < nums.length; i++) {\n            xor ^= i ^ nums[i];\n        }\n        return xor;\n    }\n\n    public static void main(String[] args) {\n        int[] arr1 = {4, 1, 2, 1, 2};\n        int[] arr2 = {3, 0, 1};\n        System.out.println(\"Single Number: \" + singleNumber(arr1));\n        System.out.println(\"Missing Number: \" + missingNumber(arr2));\n    }\n}",
     "output": "Single Number: 4\nMissing Number: 2",
-    "id": 19
+    "id": 44
   },
   {
     "category": "arrays",
@@ -237,7 +537,7 @@
     "spaceComplexity": "O(1) auxiliary space",
     "code": "public class CyclicSortPattern {\n    public static void cyclicSort(int[] arr) {\n        int i = 0;\n        while (i < arr.length) {\n            int correctIndex = arr[i] - 1;\n            if (arr[i] > 0 && arr[i] <= arr.length && arr[i] != arr[correctIndex]) {\n                swap(arr, i, correctIndex);\n            } else {\n                i++;\n            }\n        }\n    }\n\n    private static void swap(int[] arr, int i, int j) {\n        int temp = arr[i];\n        arr[i] = arr[j];\n        arr[j] = temp;\n    }\n\n    public static int findDuplicate(int[] arr) {\n        cyclicSort(arr);\n        for (int i = 0; i < arr.length; i++) {\n            if (arr[i] != i + 1) return arr[i];\n        }\n        return -1;\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {3, 1, 3, 4, 2};\n        System.out.println(\"Duplicate Found: \" + findDuplicate(arr));\n    }\n}",
     "output": "Duplicate Found: 3",
-    "id": 20
+    "id": 45
   },
   {
     "category": "arrays",
@@ -249,7 +549,7 @@
     "spaceComplexity": "O(K) auxiliary space for Min-Heap",
     "code": "import java.util.*;\n\npublic class HeapArrayProblems {\n    static class QueueNode implements Comparable<QueueNode> {\n        int value, arrayIndex, elementIndex;\n        QueueNode(int value, int arrIdx, int elIdx) {\n            this.value = value;\n            this.arrayIndex = arrIdx;\n            this.elementIndex = elIdx;\n        }\n        public int compareTo(QueueNode other) {\n            return Integer.compare(this.value, other.value);\n        }\n    }\n\n    public static List<Integer> mergeKSortedArrays(int[][] arrays) {\n        List<Integer> res = new ArrayList<>();\n        PriorityQueue<QueueNode> minHeap = new PriorityQueue<>();\n        for (int i = 0; i < arrays.length; i++) {\n            if (arrays[i].length > 0) {\n                minHeap.add(new QueueNode(arrays[i][0], i, 0));\n            }\n        }\n        while (!minHeap.isEmpty()) {\n            QueueNode curr = minHeap.poll();\n            res.add(curr.value);\n            if (curr.elementIndex + 1 < arrays[curr.arrayIndex].length) {\n                minHeap.add(new QueueNode(\n                    arrays[curr.arrayIndex][curr.elementIndex + 1],\n                    curr.arrayIndex,\n                    curr.elementIndex + 1\n                ));\n            }\n        }\n        return res;\n    }\n\n    public static void main(String[] args) {\n        int[][] arrays = {{1, 4, 7}, {2, 5, 8}, {3, 6, 9}};\n        System.out.println(\"Merged K Arrays: \" + mergeKSortedArrays(arrays));\n    }\n}",
     "output": "Merged K Arrays: [1, 2, 3, 4, 5, 6, 7, 8, 9]",
-    "id": 21
+    "id": 46
   },
   {
     "category": "arrays",
@@ -261,7 +561,7 @@
     "spaceComplexity": "O(1) for House Robber; O(N) for LIS",
     "code": "import java.util.Arrays;\n\npublic class DynamicProgrammingArrays {\n    public static int rob(int[] nums) {\n        int rob1 = 0, rob2 = 0;\n        for (int num : nums) {\n            int temp = Math.max(num + rob1, rob2);\n            rob1 = rob2;\n            rob2 = temp;\n        }\n        return rob2;\n    }\n\n    public static int lengthOfLIS(int[] nums) {\n        if (nums.length == 0) return 0;\n        int[] dp = new int[nums.length];\n        Arrays.fill(dp, 1);\n        int max = 1;\n        for (int i = 1; i < nums.length; i++) {\n            for (int j = 0; j < i; j++) {\n                if (nums[i] > nums[j]) {\n                    dp[i] = Math.max(dp[i], dp[j] + 1);\n                }\n            }\n            max = Math.max(max, dp[i]);\n        }\n        return max;\n    }\n\n    public static void main(String[] args) {\n        int[] houses = {2, 7, 9, 3, 1};\n        int[] seq = {10, 9, 2, 5, 3, 7, 101, 18};\n        System.out.println(\"Max Robbed: \" + rob(houses));\n        System.out.println(\"LIS Length: \" + lengthOfLIS(seq));\n    }\n}",
     "output": "Max Robbed: 12\nLIS Length: 4",
-    "id": 22
+    "id": 47
   },
   {
     "category": "arrays",
@@ -273,7 +573,7 @@
     "spaceComplexity": "O(K) for Deque; O(1) for Median partition checks",
     "code": "import java.util.*;\n\npublic class HardArrayProblems {\n    public static int[] maxSlidingWindow(int[] nums, int k) {\n        if (nums.length == 0 || k == 0) return new int[0];\n        int n = nums.length;\n        int[] r = new int[n - k + 1];\n        int ri = 0;\n        Deque<Integer> q = new ArrayDeque<>();\n        for (int i = 0; i < n; i++) {\n            // Remove out-of-bounds index\n            if (!q.isEmpty() && q.peek() < i - k + 1) {\n                q.poll();\n            }\n            // Remove smaller values\n            while (!q.isEmpty() && nums[q.peekLast()] < nums[i]) {\n                q.pollLast();\n            }\n            q.offer(i);\n            if (i >= k - 1) {\n                r[ri++] = nums[q.peek()];\n            }\n        }\n        return r;\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {1, 3, -1, -3, 5, 3, 6, 7};\n        int[] res = maxSlidingWindow(arr, 3);\n        System.out.print(\"Sliding Window Maximums: \");\n        for (int x : res) System.out.print(x + \" \");\n        System.out.println();\n    }\n}",
     "output": "Sliding Window Maximums: 3 3 5 5 6 7 ",
-    "id": 23
+    "id": 48
   },
   {
     "category": "arrays",
@@ -285,22 +585,10 @@
     "spaceComplexity": "O(1) auxiliary space (excluding output array)",
     "code": "import java.util.Arrays;\n\npublic class FaangClassics {\n    public static int[] productExceptSelf(int[] nums) {\n        int n = nums.length;\n        int[] res = new int[n];\n        res[0] = 1;\n        for (int i = 1; i < n; i++) {\n            res[i] = res[i - 1] * nums[i - 1]; // Prefix product\n        }\n        int right = 1;\n        for (int i = n - 1; i >= 0; i--) {\n            res[i] *= right; // Suffix product\n            right *= nums[i];\n        }\n        return res;\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {1, 2, 3, 4};\n        int[] result = productExceptSelf(nums);\n        System.out.println(\"Product except self: \" + Arrays.toString(result));\n    }\n}",
     "output": "Product except self: [24, 12, 8, 6]",
-    "id": 24
+    "id": 49
   },
   {
-    "id": 25,
-    "category": "strings",
-    "title": "Reverse a String in Java",
-    "problemStatement": "Write a Java program to reverse a given string without using any built-in reverse functions.",
-    "explanation": "To reverse a string, you can convert it to a character array and swap characters from both ends (using two pointers: start and end) moving towards the center. Alternatively, you can iterate backward through the string and append each character to a StringBuilder.",
-    "algorithm": "1. Initialize two pointers: 'left' at index 0 and 'right' at length - 1.\n2. Convert string to character array.\n3. Loop while left < right.\n4. Swap character at index left with character at index right.\n5. Increment left pointer and decrement right pointer.\n6. Convert character array back to string and return.",
-    "timeComplexity": "O(N)",
-    "spaceComplexity": "O(N) for character array",
-    "code": "public class StringReversal {\n    public static String reverse(String input) {\n        if (input == null) return null;\n        char[] chars = input.toCharArray();\n        int left = 0;\n        int right = chars.length - 1;\n        while (left < right) {\n            char temp = chars[left];\n            chars[left] = chars[right];\n            chars[right] = temp;\n            left++;\n            right--;\n        }\n        return new String(chars);\n    }\n\n    public static void main(String[] args) {\n        String original = \"JavaMaster\";\n        String reversed = reverse(original);\n        System.out.println(\"Original: \" + original);\n        System.out.println(\"Reversed: \" + reversed);\n    }\n}",
-    "output": "Original: JavaMaster\nReversed: retsaMavaJ"
-  },
-  {
-    "id": 26,
+    "id": 50,
     "category": "recursion",
     "title": "N-th Fibonacci Number (Recursive and Memoized)",
     "problemStatement": "Calculate the N-th Fibonacci number using recursion, and optimize it using memoization.",
@@ -312,7 +600,7 @@
     "output": "Fibonacci of 10 is: 55"
   },
   {
-    "id": 27,
+    "id": 51,
     "category": "sorting_searching",
     "title": "Binary Search Algorithm",
     "problemStatement": "Implement Binary Search on a sorted array of integers to locate a target element.",
@@ -324,7 +612,7 @@
     "output": "Element 23 found at index: 5"
   },
   {
-    "id": 28,
+    "id": 52,
     "category": "data_structures",
     "title": "Detect Loop in a Linked List",
     "problemStatement": "Implement Floyd's Cycle Finding algorithm to detect a loop (cycle) in a Singly Linked List.",
@@ -345,7 +633,7 @@
     "spaceComplexity": "O(1) auxiliary space",
     "code": "public class NumberReversal {\n    public static int reverse(int num) {\n        int rev = 0;\n        while (num > 0) {\n            int rem = num % 10;\n            rev = (rev * 10) + rem;\n            num /= 10;\n        }\n        return rev;\n    }\n\n    public static void main(String[] args) {\n        int number = 12345;\n        int reversed = reverse(number);\n        System.out.println(\"Original: \" + number);\n        System.out.println(\"Reversed: \" + reversed);\n    }\n}",
     "output": "Original: 12345\nReversed: 54321",
-    "id": 29
+    "id": 53
   },
   {
     "category": "numbers",
@@ -357,7 +645,7 @@
     "spaceComplexity": "O(1)",
     "code": "public class PalindromeNumber {\n    public static boolean isPalindrome(int num) {\n        int temp = num;\n        int rev = 0;\n        while (num > 0) {\n            int rem = num % 10;\n            rev = (rev * 10) + rem;\n            num /= 10;\n        }\n        return temp == rev;\n    }\n\n    public static void main(String[] args) {\n        int val = 121;\n        System.out.println(val + \" is Palindrome: \" + isPalindrome(val));\n    }\n}",
     "output": "121 is Palindrome: true",
-    "id": 30
+    "id": 54
   },
   {
     "category": "numbers",
@@ -369,7 +657,7 @@
     "spaceComplexity": "O(1)",
     "code": "public class ArmstrongNumber {\n    public static boolean isArmstrong(int num) {\n        int temp = num;\n        int sum = 0;\n        while (num > 0) {\n            int rem = num % 10;\n            sum += (rem * rem * rem);\n            num /= 10;\n        }\n        return temp == sum;\n    }\n\n    public static void main(String[] args) {\n        int val = 153;\n        System.out.println(val + \" is Armstrong: \" + isArmstrong(val));\n    }\n}",
     "output": "153 is Armstrong: true",
-    "id": 31
+    "id": 55
   },
   {
     "category": "numbers",
@@ -381,7 +669,7 @@
     "spaceComplexity": "O(1)",
     "code": "public class PrimeChecker {\n    public static boolean isPrime(int num) {\n        if (num <= 1) return false;\n        for (int i = 2; i * i <= num; i++) {\n            if (num % i == 0) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    public static void main(String[] args) {\n        int val = 13;\n        System.out.println(val + \" is Prime: \" + isPrime(val));\n    }\n}",
     "output": "13 is Prime: true",
-    "id": 32
+    "id": 56
   },
   {
     "category": "numbers",
@@ -393,7 +681,7 @@
     "spaceComplexity": "O(1)",
     "code": "public class SwapNumbers {\n    public static void main(String[] args) {\n        int a = 10;\n        int b = 20;\n        System.out.println(\"Before Swap - a: \" + a + \", b: \" + b);\n        \n        a = a + b; // a becomes 30\n        b = a - b; // b becomes 10\n        a = a - b; // a becomes 20\n        \n        System.out.println(\"After Swap - a: \" + a + \", b: \" + b);\n    }\n}",
     "output": "Before Swap - a: 10, b: 20\nAfter Swap - a: 20, b: 10",
-    "id": 33
+    "id": 57
   },
   {
     "category": "sorting_searching",
@@ -405,6 +693,6 @@
     "spaceComplexity": "O(1)",
     "code": "import java.util.Arrays;\n\npublic class BubbleSort {\n    public static void sort(int[] arr) {\n        int n = arr.length;\n        for (int i = 0; i < n - 1; i++) {\n            for (int j = 0; j < n - i - 1; j++) {\n                if (arr[j] > arr[j + 1]) {\n                    int temp = arr[j];\n                    arr[j] = arr[j + 1];\n                    arr[j + 1] = temp;\n                }\n            }\n        }\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {22, 5, 6, 88, 9};\n        sort(nums);\n        System.out.println(\"Sorted: \" + Arrays.toString(nums));\n    }\n}",
     "output": "Sorted: [5, 6, 9, 22, 88]",
-    "id": 34
+    "id": 58
   }
 ]
