@@ -184,15 +184,319 @@
     "summary": "String is immutable for SCP/hash stability. HashSet is backed by a HashMap. volatile is for memory visibility; synchronized is for mutual exclusion. wait() releases lock; sleep() does not."
   },
   {
-    "id": 24,
     "category": "collections",
-    "title": "Java Collections Framework (JCF)",
-    "description": "The Java Collections Framework (JCF) is a unified architecture representing and manipulating collection groups. It defines abstract collections through interfaces and maps them to concrete cache-friendly and search-optimized data structures.",
-    "examples": "### 1. The Core Architecture & Hierarchy\nThe Java Collections Framework (JCF) is a unified architecture containing **Interfaces**, **Implementations**, and **Algorithms**. JCF separates interfaces (defining what a collection does) from concrete implementations (defining how it is done).\n\n```mermaid\ngraph TD\n    Iterable --> Collection\n    Collection --> List\n    Collection --> Set\n    Collection --> Queue\n    List --> ArrayList\n    List --> LinkedList\n    List --> Vector\n    Set --> HashSet\n    Set --> TreeSet\n    Set --> LinkedHashSet\n    Queue --> PriorityQueue\n    Queue --> ArrayDeque\n```\n\n*Note: `Map` is NOT a child of the `Collection` interface, but is a core part of the JCF.*\n\n```mermaid\ngraph TD\n    Map --> HashMap\n    Map --> TreeMap\n    Map --> LinkedHashMap\n    LinkedHashMap --> ConcurrentHashMap\n```\n\n---\n\n### 2. ArrayList vs LinkedList Internals\n*   **ArrayList**: Backed by a resizeable raw `Object[]`. Resizes by creating a new array (typically 1.5\u00d7 capacity) and copying elements (`O(n)` resizing cost, amortized `O(1)` append). Inserting/deleting in the middle requires shifting elements (`O(n)`). High performance due to contiguous memory (cache-friendly).\n*   **LinkedList**: Backed by double-linked nodes (stores data, prev, next references). Inserting/deleting is `O(1)` if you already have the node reference. Searching by index requires linear traversal (`O(n)`), making it generally slower in practice due to pointer chasing and cache-misses.\n\n---\n\n### 3. HashMap Internal Mechanics & Collisions\nHashMap works on the principle of **hashing** using a bucket array (default capacity 16).\n1. `put(key, value)`: Computes `hashCode(key)` to determine the bucket index: `index = hashCode % bucket_length`.\n2. **Collision**: If two distinct keys map to the same bucket index, they are stored in a Linked List (chaining).\n3. **Java 8 Optimization**: If bucket size exceeds 8 (threshold) and table capacity is at least 64, the list is converted to a self-balancing Red-Black Tree, improving lookup from `O(n)` to `O(log n)`.\n\n```java\n// equals() and hashCode() Contract\n// If two objects are equal according to equals(), they MUST have the same hashCode().\n@Override\npublic boolean equals(Object o) {\n    if (this == o) return true;\n    if (!(o instanceof Employee)) return false;\n    Employee employee = (Employee) o;\n    return id == employee.id;\n}\n\n@Override\npublic int hashCode() {\n    return Objects.hash(id);\n}\n```\n\n---\n\n### 4. TreeSet & LinkedHashSet\n*   **TreeSet**: Backed by a Red-Black Tree. Elements are kept automatically sorted in their natural order or by a custom `Comparator`. Search/Insert/Delete cost is `O(log n)`.\n*   **LinkedHashSet**: Backed by a Hash Table + Doubly Linked List. Maintains elements in their exact insertion order.\n\n---\n\n### 5. PriorityQueue & Deque\n*   **PriorityQueue**: Backed by a binary heap. Elements are processed based on priority (minimum value first by default), not FIFO.\n*   **Deque**: Double-ended queue (can add/remove from both ends). Preferred over the legacy `Stack` class (e.g., `Deque<Integer> stack = new ArrayDeque<>();`).\n\n---\n\n### 6. Utility Class & Sorting\nThe `Collections` utility class provides static algorithms:\n*   `Collections.sort(list);`\n*   `Collections.reverse(list);`\n*   `Collections.binarySearch(list, key);`\n\n#### **Comparable vs Comparator**\n*   **Comparable**: Implemented by the class itself (`compareTo()` method) to define its single natural sorting order.\n*   **Comparator**: An external comparison strategy (`compare()` method) passed dynamically to sort objects in multiple ways (e.g., by name, age, or salary).\n\n---\n\n### 7. Time Complexity Summary\n| Data Structure | Search | Insert End | Insert Middle | Delete | Ordered |\n| :--- | :--- | :--- | :--- | :--- | :--- |\n| **ArrayList** | O(n) | Amortized O(1) | O(n) | O(n) | Yes |\n| **LinkedList** | O(n) | O(1) | O(1)* | O(1)* | Yes |\n| **HashSet** | O(1) avg | O(1) avg | \u2014 | O(1) avg | No |\n| **TreeSet** | O(log n) | O(log n) | \u2014 | O(log n) | Sorted |\n| **HashMap** | O(1) avg | O(1) avg | \u2014 | O(1) avg | No |\n| **TreeMap** | O(log n) | O(log n) | \u2014 | O(log n) | Sorted |\n| **PriorityQueue** | O(n) | O(log n) | \u2014 | O(log n) | Priority |\n\n*\\*Locating the index takes O(n) traversal before the O(1) insert/delete operation.*",
-    "summary": "Choose ArrayList for contiguous storage, LinkedList for double-linked queues, HashSet for uniqueness, TreeSet for sorting, HashMap for O(1) key lookups, and TreeMap for sorted associations."
+    "title": "Module 1: Introduction to Collections",
+    "description": "What is a Collection, why they are needed, Arrays vs Collections, and the Java Collections Framework (JCF) architecture features.",
+    "examples": "### 1. What is a Collection?\nA collection represents a single group of individual objects acting as a single unit (similar to containers in C++ or lists/dicts in Python).\n\n---\n\n### 2. Why Collections are Needed?\nSuppose you need to store dynamic user connections on WhatsApp.\n*   **Without JCF**: You would have to implement dynamic array resizing, custom linked lists, hash tables, sorting algorithms, and thread-safety locks by hand.\n*   **With JCF**: Java provides production-ready, highly optimized data structures (ArrayList, HashMap) right out of the box.\n\n---\n\n### 3. Arrays vs Collections\n| Feature | Arrays | Collections |\n| :--- | :--- | :--- |\n| **Size** | Fixed (cannot change size at runtime). | Dynamic (resizes automatically). |\n| **Type Support** | Primitives and Object references. | Object references only (primitives are autoboxed). |\n| **Memory** | Contiguous execution blocks. | Varies by implementation (linked nodes, hash trees). |\n| **Utility** | No built-in algorithms (sorting, searching). | Rich library helper classes (Collections utility). |\n\n---\n\n### 4. Collection vs Map Interface Hierarchy\nThe `Map` interface does not extend the `Collection` interface because they represent completely different structures:\n*   `Collection`: Handles a group of individual element values.\n*   `Map`: Handles Key-Value pairs. Methods like `add(E e)` do not make sense for maps, which require a key and a value parameter (`put(K key, V value)`).",
+    "summary": "Collections act as dynamic memory holders. Arrays are fixed in size and support primitive variables; Collections resize dynamically and support object references only.",
+    "id": 24
   },
   {
-    "id": 25,
+    "category": "collections",
+    "title": "Module 2: Collection Hierarchy",
+    "description": "The complete JCF visual hierarchy mapping Iterable, Collection, List, Set, Queue, Deque, and Map interfaces.",
+    "examples": "### 1. Visual Interface Tree\nThe core JCF interfaces map as follows:\n\n```\n                  Iterable (Interface)\n                     |\n                 Collection (Interface)\n         /           |             \\\n      List          Set           Queue (Interface)\n    (Interface)  (Interface)         |\n                                   Deque (Interface)\n```\n\n---\n\n### 2. The Separate Map Hierarchy\n`Map` represents key-value associations and resides in its own isolated hierarchy:\n\n```\n                     Map (Interface)\n                     |\n       +-------------+-------------+\n       |                           |\n   SortedMap                   AbstractMap\n       |\n  NavigableMap\n```\n\n---\n\n### 3. Core Interface Definitions\n*   **List**: Ordered collection allowing duplicates. Elements accessible by integer index.\n*   **Set**: Unordered collection prohibiting duplicates.\n*   **Queue**: Designed for holding elements prior to processing (commonly FIFO).\n*   **Map**: Unordered key-value directory. Keys must be unique.",
+    "summary": "List, Set, and Queue inherit from the Collection interface. Map exists in its own separate hierarchy because it operates on Key-Value association pairs.",
+    "id": 25
+  },
+  {
+    "category": "collections",
+    "title": "Module 3: Iterable Interface",
+    "description": "Understanding the root of all collections: the Iterable interface, Iterator method, and internal mechanics of foreach loops.",
+    "examples": "### 1. What is Iterable?\nThe `java.lang.Iterable` interface is the root interface for all JCF classes (except Maps). Any class implementing `Iterable` can be target of the enhanced `for-each` loop.\n\n---\n\n### 2. The iterator() Method\n`Iterable` defines exactly one mandatory method to retrieve an iterator cursor:\n```java\nIterator<T> iterator();\n```\n\n---\n\n### 3. Internal Working of Enhanced For-Loop (for-each)\nAt compilation time, the Java compiler translates the convenient enhanced `for` loop syntax into a standard while loop using an `Iterator` object:\n\n```java\n// Developer writes:\nfor (String name : namesList) {\n    System.out.println(name);\n}\n\n// Compiler translates to:\nIterator<String> iterator = namesList.iterator();\nwhile (iterator.hasNext()) {\n    String name = iterator.next();\n    System.out.println(name);\n}\n```",
+    "summary": "Iterable is the parent of all Collection interfaces, enabling enhanced for-each iteration. Under the hood, for-each is compiled into standard iterator while loops.",
+    "id": 26
+  },
+  {
+    "category": "collections",
+    "title": "Module 4: Collection Interface",
+    "description": "General interface methods and shared operations across JCF implementations.",
+    "examples": "### 1. Core Interface Methods\nThe `Collection` interface defines operations common to all lists, sets, and queues:\n*   `add(E e)` / `addAll(Collection<? extends E> c)`: Inserts elements.\n*   `remove(Object o)` / `removeAll(Collection<?> c)`: Deletes elements.\n*   `retainAll(Collection<?> c)`: Retains only elements found in the target collection.\n*   `contains(Object o)` / `containsAll(Collection<?> c)`: Search checks.\n*   `size()` / `isEmpty()` / `clear()`: State operations.\n*   `stream()` / `parallelStream()`: Sequential/Parallel streams pipelines.\n\n---\n\n### 2. Time Complexity Reference\nGeneral time complexity bounds across typical collection categories:\n\n| Operation | List (ArrayList) | Set (HashSet) | Queue (PriorityQueue) |\n| :--- | :--- | :--- | :--- |\n| **Insert** | `O(1)` (Append) | `O(1)` (Average) | `O(log n)` |\n| **Search** | `O(n)` | `O(1)` (Average) | `O(n)` |\n| **Delete** | `O(n)` (Shifting) | `O(1)` (Average) | `O(log n)` |",
+    "summary": "The Collection interface provides generic contract declarations. List and Set override these declarations to add index support or enforce element uniqueness rules.",
+    "id": 27
+  },
+  {
+    "category": "collections",
+    "title": "Module 5: List Interface",
+    "description": "Introduction to the List interface, index-based characteristics, specific methods, and core implementations.",
+    "examples": "### 1. Characteristics\nA `List` is a sequential collection of elements that preserves insertion order:\n*   **Ordered**: Elements are stored in sequence.\n*   **Duplicates Allowed**: Multiple identical elements can reside in different index locations.\n*   **Index-Based**: Elements are retrieved, modified, or deleted using 0-based integer indexes.\n\n---\n\n### 2. List-Specific Methods\nList interface extends `Collection` to add index-specific operations:\n*   `add(int index, E element)`: Inserts element at specific index, shifting subsequent elements.\n*   `get(int index)`: Returns element at index.\n*   `set(int index, E element)`: Replaces element at index.\n*   `indexOf(Object o)` / `lastIndexOf(Object o)`: Locates element position.\n*   `subList(int fromIndex, int toIndex)`: Returns view of the range slice.\n\n---\n\n### 3. Core Implementations\n*   **ArrayList**: Resizable dynamic array buffer.\n*   **LinkedList**: Doubly linked list node structure.\n*   **Vector**: Synchronized (thread-safe) legacy dynamic array.\n*   **Stack**: Inherits from Vector; represents LIFO operations.",
+    "summary": "List interface guarantees insertion order and allows duplicates. Elements are accessed by index. Core implementations are ArrayList, LinkedList, Vector, and Stack.",
+    "id": 28
+  },
+  {
+    "category": "collections",
+    "title": "Module 6: ArrayList",
+    "description": "Internal working of ArrayList: growth algorithms, resizing costs, shifts, cache locality, and performance.",
+    "examples": "### 1. Internal Dynamic Array Structure\nAn `ArrayList` wraps a standard Java array buffer (`transient Object[] elementData`).\n*   **Initial Capacity**: Defaults to 10 elements.\n*   **Resizing Growth Algorithm**: When capacity is exceeded, ArrayList creates a new larger array and copies the old elements over.\n*   **Growth Equation**:\n    ```\n    newCapacity = oldCapacity + (oldCapacity >> 1)  // Growth factor is 1.5x\n    ```\n\n---\n\n### 2. Shifting & Amortized Insertion Cost\n*   **Appending (End Insertion)**: Takes `O(1)` time.\n*   **Indexed Insertion/Deletion**: Requires elements to be shifted using `System.arraycopy()`, taking `O(n)` time.\n*   **Amortized Complexity**: Appending is `O(1)` amortized because the costly `O(n)` resizing operation is executed infrequently.\n\n---\n\n### 3. Cache Locality vs Memory\nArrayList values reside in contiguous memory buffers. This yields high **cache locality**, allowing the CPU to read data blocks sequentially and fast. This is why ArrayList out-performs LinkedList in real-world benchmarks.",
+    "summary": "ArrayList grows by 1.5x of old capacity using binary bit shifts. Appending to the end is O(1) amortized, but middle insertion is O(n) because of internal array copying.",
+    "id": 29
+  },
+  {
+    "category": "collections",
+    "title": "Module 7: LinkedList",
+    "description": "LinkedList doubly-linked node layout, pointer traversals, and why it performs slower in real-world benchmarks.",
+    "examples": "### 1. Doubly-Linked List Architecture\nA `LinkedList` stores elements inside nested Node objects containing pointers:\n\n```\n      +-------------+        +-------------+        +-------------+\n      | Node A      |        | Node B      |        | Node C      |\nnull<-| prev   next |------->| prev   next |------->| prev   next |->null\n      |    data     |        |    data     |        |    data     |\n      +-------------+        +-------------+        +-------------+\n```\n\n---\n\n### 2. Node Properties & Traversals\n*   Each node allocates memory for: element value, `next` pointer, and `prev` pointer.\n*   No contiguous allocation: Nodes are scattered across the Heap, linked by references.\n*   **No Random Access**: Retrieving element `get(50)` requires traversing pointers sequentially from `head` or `tail`. Time complexity: `O(n)`.\n\n---\n\n### 3. Insertion / Deletion Costs\nInserting or deleting a node takes `O(1)` time **once you hold a reference** to the target node position. However, finding the node position takes `O(n)`.\n\n---\n\n### 4. Cache Locality Deficit\nBecause LinkedList nodes are scattered randomly across Heap memory, they lack CPU cache locality, causing frequent **cache misses** that make execution significantly slower than ArrayList.",
+    "summary": "LinkedList stores elements in non-contiguous Node objects. Appending is O(1) using head/tail markers, but searching and indexing take O(n) pointer traversals.",
+    "id": 30
+  },
+  {
+    "category": "collections",
+    "title": "Module 8: Vector",
+    "description": "Legacy synchronized Vector dynamic array class, growth factors, and comparison to ArrayList.",
+    "examples": "### 1. What is Vector?\n`Vector` is a legacy dynamic array implementation. Unlike modern JCF collections, Vector was retrofitted to implement the `List` interface in Java 1.2.\n\n---\n\n### 2. Synchronization & Performance\nEvery read and write operation inside `Vector` is decorated with the `synchronized` keyword:\n*   Guarantees thread safety.\n*   Introduces massive locking overhead. Single-threaded applications suffer from thread lock performance bottlenecks.\n\n---\n\n### 3. Vector vs. ArrayList Growth Factor\n*   **ArrayList**: Grows by **50%** (1.5x original size).\n*   **Vector**: Grows by **100%** (2x original size), or by a custom increment factor specified in the constructor.\n\n---\n\n### 4. Enumeration Iterator\nVector uses a legacy cursor iterator `Enumeration`, which has since been replaced by the modern fail-fast `Iterator` interface.",
+    "summary": "Vector is a synchronized, legacy dynamic array that doubles its capacity (2x) when full. It is slower due to locking overhead. Use ArrayList for single-threaded loops.",
+    "id": 31
+  },
+  {
+    "category": "collections",
+    "title": "Module 9: Stack",
+    "description": "Legacy LIFO stack implementation, methods, and why modern applications prefer ArrayDeque.",
+    "examples": "### 1. Stack Class (LIFO)\n`Stack` implements Last-In-First-Out operations by extending `Vector`.\n*   **Methods**:\n    *   `push(E item)`: Appends to the top.\n    *   `pop()`: Removes and returns the top element.\n    *   `peek()`: Inspects the top element without removing it.\n\n---\n\n### 2. Structural Design Error\nBecause `Stack` extends `Vector`, it inherits all of Vector's synchronized methods, causing locking overhead.\n*   **Design Issue**: Stack inherits unrelated list index operations (e.g. `insertAt(index)`), violating pure LIFO stack specifications.\n\n---\n\n### 3. The Modern Alternative: ArrayDeque\nFor LIFO stack operations, modern Java development recommends using the `Deque` interface backed by an `ArrayDeque` implementation. It is non-synchronized, does not inherit Vector, and runs significantly faster.\n\n```java\n// Recommended Stack Usage\nDeque<Integer> stack = new ArrayDeque<>();\nstack.push(10);\nstack.pop();\n```",
+    "summary": "Stack inherits Vector and LIFO operations. It is legacy and slow due to synchronization locks. Use ArrayDeque as a high-performance, non-synchronized LIFO stack.",
+    "id": 32
+  },
+  {
+    "category": "collections",
+    "title": "Module 10: Queue",
+    "description": "First-In-First-Out Queue interface, comparison of safe methods vs exception-throwing methods, and key implementations.",
+    "examples": "### 1. Characteristics\nA `Queue` holds elements waiting to be processed, typically following a First-In-First-Out (FIFO) pipeline order.\n\n---\n\n### 2. Exception-Throwing vs. Safe Methods\nQueue defines two sets of methods for insert, delete, and inspect operations:\n\n| Operation | Throws Exception (If limit hit) | Returns Special Value (null / false) |\n| :--- | :--- | :--- |\n| **Insert** | `add(e)` | `offer(e)` |\n| **Remove** | `remove()` | `poll()` |\n| **Inspect** | `element()` | `peek()` |\n\n---\n\n### 3. Core Implementations\n*   **LinkedList**: Standard FIFO queue implementation.\n*   **PriorityQueue**: Orders elements according to natural comparator priorities, rather than insertion time.\n*   **ArrayDeque**: A resizable array queue implementation.",
+    "summary": "Queue interface handles FIFO operations. Use offer/poll/peek methods to handle boundary conditions safely via null/false returns instead of exceptions.",
+    "id": 33
+  },
+  {
+    "category": "collections",
+    "title": "Module 11: PriorityQueue",
+    "description": "PriorityQueue binary heap details, min/max heap configurations, custom comparators, and time complexities.",
+    "examples": "### 1. Internal Heap Structure\n`PriorityQueue` is a priority-based queue backed by a balanced binary heap (represented internally as a raw Object array).\n*   **Natural Sorting**: Elements are ordered using their natural comparator order or custom Comparators.\n*   **Heap Type**: By default, PriorityQueue acts as a **Min-Heap** (smallest element at the root).\n*   **Not Sorted**: Traversing a PriorityQueue with an iterator does *not* yield a sorted list; only the root element retrieved via `poll()` is guaranteed to be the highest priority.\n\n---\n\n### 2. Min-Heap vs Max-Heap Configuration\n```java\n// Min-Heap (Default: smallest first)\nPriorityQueue<Integer> minHeap = new PriorityQueue<>();\n\n// Max-Heap (Custom: largest first)\nPriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());\n```\n\n---\n\n### 3. Time Complexities\n*   `peek()`: `O(1)` (Direct array index access `queue[0]`).\n*   `offer()` / `poll()`: `O(log n)` (Requires rebuilding the heap structure).\n*   `remove(Object)`: `O(n)` (Requires scanning the array to locate the element).",
+    "summary": "PriorityQueue uses binary heap properties to keep the smallest or largest element at the root. Insertion and deletion run in O(log n); peek is O(1).",
+    "id": 34
+  },
+  {
+    "category": "collections",
+    "title": "Module 12: Deque",
+    "description": "Double-Ended Queue (Deque) interface, double-sided methods, stack and queue layouts, and ArrayDeque structure.",
+    "examples": "### 1. Double-Ended Queue (Deque)\nA `Deque` is a linear collection that supports element insertion and removal at both ends. It can act as a FIFO Queue or a LIFO Stack.\n\n---\n\n### 2. Dual-Ended Methods\nDeque defines methods to access elements from both boundaries:\n\n*   **First End (Head)**: `addFirst(e)`, `removeFirst()`, `peekFirst()`\n*   **Last End (Tail)**: `addLast(e)`, `removeLast()`, `peekLast()`\n\n---\n\n### 3. ArrayDeque Implementation\n`ArrayDeque` is the primary implementation of `Deque`. It wraps a dynamic circular array:\n*   **No Pointers**: Unlike LinkedList, it does not use pointer objects, which reduces garbage collection pressure.\n*   **Performance**: Outperforms LinkedList when used as a Queue, and out-performs Stack when used as a Stack.\n*   **Null Prohibited**: Prohibits null insertions to prevent ambiguity with the `null` return values of operations like `poll()`.",
+    "summary": "Deque supports insertion/deletion at both ends. ArrayDeque is circular, has no node pointer overhead, and outperforms both Stack and LinkedList.",
+    "id": 35
+  },
+  {
+    "category": "collections",
+    "title": "Module 13: Set Interface",
+    "description": "Introduction to Set characteristics, duplicate prevention rules, and core HashSet/LinkedHashSet/TreeSet implementations.",
+    "examples": "### 1. Core Set Characteristics\nA `Set` is a Collection that contains no duplicate elements:\n*   **No Duplicates**: Adding an element that is already present in the Set returns `false` and does not insert the element.\n*   **No Indexing**: Elements are not stored in index locations. You cannot retrieve items by writing `get(5)`.\n\n---\n\n### 2. Core Implementations\n*   **HashSet**: Backed by a HashMap, unordered, and yields `O(1)` average lookup time.\n*   **LinkedHashSet**: Backed by a hash map and linked list, preserves insertion order.\n*   **TreeSet**: Backed by a Red-Black tree, keeps elements sorted according to natural or custom comparator orders.\n\n---\n\n### 3. Uniqueness Contract\nElements added to a Set must implement correct `equals()` and `hashCode()` methods to detect and prevent duplicates.",
+    "summary": "Set interface enforces unique element rules. It has no index operations. Core implementations are HashSet, LinkedHashSet (ordered), and TreeSet (sorted).",
+    "id": 36
+  },
+  {
+    "category": "collections",
+    "title": "Module 14: HashSet",
+    "description": "HashSet internals: wrapper HashMap, dummy value object, duplicate checks, and lookup performance.",
+    "examples": "### 1. How HashSet Works Internally\nA `HashSet` does *not* implement a new hashing algorithm from scratch. Instead, it wraps a `HashMap` internally:\n\n```java\npublic class HashSet<E> implements Set<E> {\n    private transient HashMap<E, Object> map;\n    private static final Object PRESENT = new Object(); // Dummy value\n\n    public HashSet() {\n        map = new HashMap<>();\n    }\n\n    public boolean add(E e) {\n        return map.put(e, PRESENT) == null; // Added element is the Map key\n    }\n}\n```\n\n---\n\n### 2. Key Details\n*   **Keys are the Set Elements**: Added elements act as keys in the internal HashMap.\n*   **Dummy Object value**: Every key maps to the same dummy object reference `PRESENT`.\n*   **Duplicate Detection**: Managed by HashMap's key uniqueness checking.\n*   **Time Complexity**: `O(1)` average for insert, search, and delete operations.",
+    "summary": "HashSet is backed by a HashMap internally. Set elements act as HashMap keys, mapping to a shared static dummy Object placeholder value.",
+    "id": 37
+  },
+  {
+    "category": "collections",
+    "title": "Module 15: LinkedHashSet",
+    "description": "LinkedHashSet insertion ordering mechanics, linked list wrappers, and comparisons to HashSet.",
+    "examples": "### 1. Insertion Order Preservation\n`LinkedHashSet` inherits from `HashSet`. While a standard `HashSet` does not guarantee any order, `LinkedHashSet` preserves the order in which elements were inserted.\n\n---\n\n### 2. Under the Hood\nLinkedHashSet achieves insertion ordering by wrapping a `LinkedHashMap` internally:\n*   **Data Structures**: Combines a Hash Table (for O(1) lookups) with a Doubly Linked List running through all elements (to track insertion sequence).\n\n---\n\n### 3. HashSet vs. LinkedHashSet\n| Feature | HashSet | LinkedHashSet |\n| :--- | :--- | :--- |\n| **Ordering** | Unordered. | Preserves insertion order. |\n| **Performance** | Slightly faster (no list pointer updates). | Slightly slower due to list pointer maintenance. |\n| **Memory** | Low memory footprint. | Higher memory footprint due to next/prev node pointer storage. |",
+    "summary": "LinkedHashSet is backed by a LinkedHashMap. It maintains elements in a doubly linked list to preserve insertion order, introducing minor memory/speed overhead.",
+    "id": 38
+  },
+  {
+    "category": "collections",
+    "title": "Module 16: TreeSet",
+    "description": "TreeSet Red-Black tree sorting, NavigableSet navigation methods, and sorting contracts.",
+    "examples": "### 1. Sorted Tree Properties\n`TreeSet` is a SortedSet implementation backed by a Red-Black tree (internally wrapping a `TreeMap`).\n*   **Ordering**: Elements are kept sorted in ascending order.\n*   **Dynamic Complexity**: Insertion, deletion, and searches take `O(log n)` time.\n\n---\n\n### 2. NavigableSet Navigation Methods\nTreeSet implements `NavigableSet`, which provides navigation methods:\n*   `first()` / `last()`: Returns boundary elements.\n*   `ceiling(e)`: Returns the smallest element `>= e`, or `null`.\n*   `floor(e)`: Returns the largest element `<= e`, or `null`.\n*   `higher(e)`: Returns the smallest element `> e`.\n*   `lower(e)`: Returns the largest element `< e`.\n\n---\n\n### 3. The Comparator Requirement\nTreeSet does *not* use `equals()` or `hashCode()` to find duplicates. Instead, it compares elements using `compareTo()` or `compare()` methods. If `compare(A, B) == 0`, TreeSet treats them as duplicates and rejects the insertion.",
+    "summary": "TreeSet is backed by a Red-Black TreeMap, keeping elements sorted in O(log n) time. It uses compareTo() or compare() comparison results to detect duplicates.",
+    "id": 39
+  },
+  {
+    "category": "collections",
+    "title": "Module 17: Map Interface",
+    "description": "Map key-value characteristics, unique keys, and entrySet/keySet/values methods.",
+    "examples": "### 1. Key-Value Association\nA `Map` maps unique keys to values.\n*   **Keys**: Must be unique. Mapping a new value to an existing key replaces the old value.\n*   **Values**: Can be duplicated.\n\n---\n\n### 2. View Method Collections\nMap provides three collection views to inspect its entries:\n1.  `keySet()`: Returns a `Set` of all keys.\n2.  `values()`: Returns a `Collection` of all values (can contain duplicates).\n3.  `entrySet()`: Returns a `Set` of `Map.Entry<K, V>` key-value pair nodes.\n\n---\n\n### 3. Core Map Methods\n*   `put(K key, V value)`: Inserts or updates key-value pair.\n*   `get(Object key)`: Retrieves value mapped to key.\n*   `containsKey(Object key)` / `containsValue(Object value)`: Query check.\n*   `computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction)`: Computes value only if the key is missing.",
+    "summary": "Map associates unique keys to duplicate values. View methods keySet(), values(), and entrySet() allow developers to iterate over map keys, values, and entries.",
+    "id": 40
+  },
+  {
+    "category": "collections",
+    "title": "Module 18: HashMap",
+    "description": "HashMap internals: bucket arrays, hash algorithms, collisions, Java 8 treeification, load factors, and resize rehashing.",
+    "examples": "### 1. Internal Structure\n`HashMap` wraps a dynamic bucket node array (`transient Node<K,V>[] table`).\n*   **Default Initial Capacity**: 16 buckets.\n*   **Load Factor**: `0.75` (resizes when Map is 75% full).\n*   **Resize Threshold**: `capacity * loadFactor` (e.g. `16 * 0.75 = 12`).\n\n---\n\n### 2. Buckets & Collision Resolution\n1. `hashCode(key)` is processed through a bitwise perturbation function to calculate the target bucket index:\n   ```\n   index = (n - 1) & hash\n   ```\n2. **Collision**: When two keys resolve to the same bucket index.\n3. **Chaining**: HashMap resolves collisions by chaining nodes using a linked list.\n4. **Treeification (Java 8)**: If a bucket list size reaches **8** and total capacity is `>= 64`, HashMap converts the linked list in that bucket into a Red-Black Tree (`TreeNode`). This reduces lookup complexity from `O(n)` to `O(log n)`.\n5. **Untreeification**: If bucket size drops to **6** during a resize operation, the tree is converted back into a linked list.\n\n---\n\n### 3. Rehashing during Resize\nWhen capacity is exceeded, HashMap doubles its size (2x). It must re-index every key-value pair into the new larger array, which is a costly `O(n)` operation.",
+    "summary": "HashMap hashes keys to bucket indexes. Java 8 converts chained linked list buckets to Red-Black trees (treeification) at threshold 8 to prevent worst-case O(n) lookups.",
+    "id": 41
+  },
+  {
+    "category": "collections",
+    "title": "Module 19: LinkedHashMap",
+    "description": "LinkedHashMap insertion vs access order, LRU Cache implementation, and comparisons to HashMap.",
+    "examples": "### 1. Preservation of Order\n`LinkedHashMap` extends `HashMap` to preserve key-value ordering:\n*   **Insertion Order**: Default order. Tracks the sequence in which keys were put in.\n*   **Access Order**: Orders elements based on how recently they were accessed (most recently accessed key is moved to the end). Useful for building caches.\n\n---\n\n### 2. Under the Hood\nLinkedHashMap extends HashMap's bucket Node class to include doubly linked list pointers:\n```java\nstatic class Entry<K,V> extends HashMap.Node<K,V> {\n    Entry<K,V> before, after; // Doubly linked list pointers\n}\n```\n\n---\n\n### 3. Creating a Simple LRU Cache\nOverride `removeEldestEntry` to automatically discard the oldest entry when size bounds are exceeded:\n\n```java\nLinkedHashMap<Integer, String> cache = new LinkedHashMap<>(16, 0.75f, true) {\n    @Override\n    protected boolean removeEldestEntry(Map.Entry<Integer, String> eldest) {\n        return size() > 3; // Keep maximum 3 elements\n    }\n};\n```",
+    "summary": "LinkedHashMap tracks entry ordering using a doubly linked list. Enabling accessOrder makes it ideal for building Least Recently Used (LRU) caches.",
+    "id": 42
+  },
+  {
+    "category": "collections",
+    "title": "Module 20: TreeMap",
+    "description": "TreeMap Red-Black sorted mapping, NavigableMap methods, and sorting comparisons.",
+    "examples": "### 1. Sorted Map properties\n`TreeMap` implements the `NavigableMap` interface. It stores key-value pairs inside a Red-Black tree structure:\n*   **Key Sorting**: Keys are kept sorted in ascending order.\n*   **Complexities**: Insert, get, and delete operations take `O(log n)` time.\n*   **Keys cannot be null**: TreeMap relies on comparing keys; inserting `null` throws a `NullPointerException`.\n\n---\n\n### 2. NavigableMap methods\n*   `firstEntry()` / `lastEntry()`: Returns boundary entries.\n*   `ceilingEntry(key)`: Smallest key-value entry `>= key`.\n*   `floorEntry(key)`: Largest key-value entry `<= key`.\n*   `higherEntry(key)`: Smallest key-value entry `> key`.\n*   `lowerEntry(key)`: Largest key-value entry `< key`.",
+    "summary": "TreeMap is a Red-Black tree map that keeps keys sorted in O(log n) time. It requires keys to be non-null and comparable.",
+    "id": 43
+  },
+  {
+    "category": "collections",
+    "title": "Module 21: Hashtable",
+    "description": "Legacy synchronized Hashtable class, null value restrictions, and comparison to HashMap.",
+    "examples": "### 1. Legacy Synchronized Map\n`Hashtable` is a legacy synchronized class that has since been retrofitted to implement the `Map` interface.\n\n---\n\n### 2. Synchronization Locks\nEvery method inside `Hashtable` is decorated with the `synchronized` modifier. This locks the entire table for both read and write operations, introducing significant performance overhead.\n\n---\n\n### 3. Null Values Prohibited\nUnlike `HashMap`, `Hashtable` does *not* allow `null` keys or `null` values:\n*   Passing `null` as a key or value throws a `NullPointerException` instantly.\n\n---\n\n### 4. Hashtable vs. HashMap\n*   **HashMap**: Non-synchronized, fast, allows one null key and multiple null values.\n*   **Hashtable**: Synchronized, slow, prohibits null keys and values.",
+    "summary": "Hashtable is a legacy synchronized map that prohibits null keys and values. It is slow; use ConcurrentHashMap for concurrent thread-safe maps.",
+    "id": 44
+  },
+  {
+    "category": "collections",
+    "title": "Module 22: WeakHashMap",
+    "description": "Weak references, garbage collection interactions, and how WeakHashMap prevents memory leaks in caches.",
+    "examples": "### 1. Weak References\nA normal Map holds **Strong References** to its keys. Strong reference keys are protected from garbage collection, even if the rest of the application no longer references them. This can lead to memory leaks in caching layers.\n*   `WeakHashMap` holds **Weak References** to its keys.\n\n---\n\n### 2. Garbage Collection Interaction\nIf a key in a `WeakHashMap` has no other active strong references outside the Map, the JVM Garbage Collector will reclaim the key object on its next pass. The map entry is then automatically discarded.\n\n```java\nWeakHashMap<Object, String> map = new WeakHashMap<>();\nObject key = new Object(); // Strong reference\nmap.put(key, \"Value\");\n\nkey = null; // Remove strong reference\nSystem.gc(); // Trigger garbage collection\n\n// The entry is automatically removed from the WeakHashMap!\nSystem.out.println(map.size()); // 0\n```",
+    "summary": "WeakHashMap holds weak references to its keys. If a key has no other strong references outside the map, GC will reclaim it, preventing memory leaks in caches.",
+    "id": 45
+  },
+  {
+    "category": "collections",
+    "title": "Module 23: IdentityHashMap",
+    "description": "IdentityHashMap reference identity matching (==) vs standard equals() comparison checks.",
+    "examples": "### 1. Reference equality (==) vs. Content equality (.equals)\n*   **HashMap**: Locates duplicate keys by checking `key.hashCode()` and `key.equals()`.\n*   **IdentityHashMap**: Bypasses the `equals()` contract. It compares keys by checking their memory reference identity (`==`) directly.\n\n---\n\n### 2. Code Example\n```java\nIdentityHashMap<String, String> map = new IdentityHashMap<>();\nString s1 = new String(\"key\");\nString s2 = new String(\"key\");\n\nmap.put(s1, \"Value A\");\nmap.put(s2, \"Value B\");\n\n// HashMap would treat s1 and s2 as duplicate keys (size = 1)\n// IdentityHashMap treats them as unique keys because they have different Heap addresses:\nSystem.out.println(map.size()); // 2\n```",
+    "summary": "IdentityHashMap compares keys by memory reference identity (==) rather than content equals(). This allows it to store multiple distinct keys with identical values.",
+    "id": 46
+  },
+  {
+    "category": "collections",
+    "title": "Module 24: EnumMap",
+    "description": "EnumMap performance optimizations, array mapping structures, and enum key validations.",
+    "examples": "### 1. High Performance Enum Keys\n`EnumMap` is a specialized `Map` implementation designed exclusively for keys of a single `Enum` type.\n\n---\n\n### 2. Internal Array Optimization\nBecause the size of an Enum type is fixed and known at compile time:\n*   **No Hashing**: EnumMap does not run hashing algorithms.\n*   **Raw Array**: Keys map directly to indexes in a raw array.\n*   **Complexity**: Get, put, and remove operations compile to direct array access indexes, which runs significantly faster than `HashMap` lookups.\n\n```java\npublic enum Day { MON, TUE, WED }\n\nEnumMap<Day, String> map = new EnumMap<>(Day.class);\nmap.put(Day.MON, \"Monday tasks\");\n```",
+    "summary": "EnumMap is designed exclusively for Enum keys. It utilizes internal raw arrays instead of hash tables, yielding the highest possible lookup speeds.",
+    "id": 47
+  },
+  {
+    "category": "collections",
+    "title": "Module 25: EnumSet",
+    "description": "EnumSet bit vector arrays, bitwise operation speeds, and Enum set features.",
+    "examples": "### 1. EnumSet Constants Collection\n`EnumSet` is a Set implementation designed for Enum values.\n\n---\n\n### 2. Bit Vector Implementation\nInternally, EnumSet stores values as a **Bit Vector**:\n*   **Bit representation**: Each enum constant is represented by a single bit in a primitive long integer (e.g. `00000001` for the first enum constant).\n*   **No Memory Allocation**: EnumSet does not allocate node objects. Instead, it runs fast bitwise CPU instructions.\n*   **Performance**: Employs minimal memory and runs faster than `HashSet`.\n\n```java\n// Create a Set of enum values\nEnumSet<Day> weekend = EnumSet.of(Day.SAT, Day.SUN);\n```",
+    "summary": "EnumSet is optimized for Enum collections. It uses a bit vector internally, compiling set operations to fast bitwise CPU operations.",
+    "id": 48
+  },
+  {
+    "category": "collections",
+    "title": "Module 26: Iterator",
+    "description": "Unidirectional Iterator interface, hasNext, next, remove methods, and fail-fast modCount exceptions.",
+    "examples": "### 1. Unidirectional Cursor\n`Iterator` is an interface used to step through a Collection sequentially.\n*   **Methods**:\n    *   `hasNext()`: Returns `true` if there are more elements.\n    *   `next()`: Returns the next element.\n    *   `remove()`: Safely removes the last element returned by the iterator.\n\n---\n\n### 2. Safely Modifying Collections During Iteration\nModifying a collection inside a standard `for-each` loop throws a `ConcurrentModificationException`. To safely remove elements during iteration, you must use the iterator's `remove()` method directly:\n\n```java\n// Throws Exception:\nfor (String s : list) {\n    if (s.equals(\"delete\")) list.remove(s);\n}\n\n// Safe approach:\nIterator<String> it = list.iterator();\nwhile (it.hasNext()) {\n    if (it.next().equals(\"delete\")) {\n        it.remove(); // Safely updates internal index bounds\n    }\n}\n```",
+    "summary": "Iterator is a unidirectional cursor. Using it.remove() is the only safe way to delete items during iteration without throwing ConcurrentModificationException.",
+    "id": 49
+  },
+  {
+    "category": "collections",
+    "title": "Module 27: ListIterator",
+    "description": "Bidirectional traversal cursors, previous/next indexes, and item modifications.",
+    "examples": "### 1. Bidirectional Traversal\n`ListIterator` extends `Iterator`. It supports traversing List collections in both directions (forward and backward).\n\n---\n\n### 2. Core ListIterator Methods\n*   `hasPrevious()` / `previous()`: Traversing backward.\n*   `nextIndex()` / `previousIndex()`: Inspects nearby index values.\n*   `add(E e)`: Inserts a new element at the current cursor position.\n*   `set(E e)`: Replaces the last element returned by `next()` or `previous()`.\n\n```java\nListIterator<String> lit = list.listIterator();\n// Walk forward\nwhile (lit.hasNext()) lit.next();\n// Walk backward\nwhile (lit.hasPrevious()) {\n    System.out.println(lit.previous());\n}\n```",
+    "summary": "ListIterator is a list-exclusive bidirectional cursor. It supports traversing collections in both directions, and modifying or inserting elements during iteration.",
+    "id": 50
+  },
+  {
+    "category": "collections",
+    "title": "Module 28: Enumeration",
+    "description": "Legacy cursor interface, read-only iteration, and comparisons to modern Iterator.",
+    "examples": "### 1. Legacy Cursor Interface\n`Enumeration` is a legacy iteration interface. It was replaced by `Iterator` in Java 1.2.\n\n---\n\n### 2. Iterator vs. Enumeration\n| Feature | Enumeration | Iterator |\n| :--- | :--- | :--- |\n| **History** | Legacy (Java 1.0). | Modern (Java 1.2). |\n| **Modification** | Read-Only (no remove methods). | Supports safe item deletion via `remove()`. |\n| **Exception Safety** | Fail-safe (does not throw exception if modified during iteration). | Fail-fast (throws `ConcurrentModificationException`). |\n| **Methods** | `hasMoreElements()`, `nextElement()` | `hasNext()`, `next()`, `remove()` |",
+    "summary": "Enumeration is a legacy read-only iteration cursor used by Vector and Hashtable. It does not support item deletion, and lacks fail-fast exception checking.",
+    "id": 51
+  },
+  {
+    "category": "collections",
+    "title": "Module 29: Comparable",
+    "description": "Natural sorting implementation, compareTo method details, and sorted class sorting overrides.",
+    "examples": "### 1. Natural Sorting contract\nClasses implement the `java.lang.Comparable` interface to define their default sorting behavior.\n\n---\n\n### 2. The compareTo() Method\nImplement `compareTo(T o)`:\n*   Returns a **negative integer** if `this < o`.\n*   Returns **zero** if `this == o`.\n*   Returns a **positive integer** if `this > o`.\n\n```java\npublic class Employee implements Comparable<Employee> {\n    private int id;\n    private String name;\n\n    @Override\n    public int compareTo(Employee other) {\n        return Integer.compare(this.id, other.id); // Sorts naturally by ID\n    }\n}\n```",
+    "summary": "Comparable defines the natural sorting sequence for a class. Implement the compareTo() method to establish default sorting rules.",
+    "id": 52
+  },
+  {
+    "category": "collections",
+    "title": "Module 30: Comparator",
+    "description": "Custom sorting strategies, lambda comparators, comparing chaining builders, and Comparable vs Comparator.",
+    "examples": "### 1. Custom Sorting Strategies\n`Comparator` is a functional interface used to sort collections using custom rules, without modifying the class source code directly.\n\n---\n\n### 2. Code Example & Chaining\n```java\n// Lambda Comparator sorting by salary\nComparator<Employee> salaryComp = (e1, e2) -> Integer.compare(e1.getSalary(), e2.getSalary());\n\n// Chaining Comparators: sort by salary, then by name\nComparator<Employee> mixedComp = Comparator\n    .comparing(Employee::getSalary)\n    .thenComparing(Employee::getName);\n```\n\n---\n\n### 3. Comparable vs. Comparator\n*   **Comparable**: Class implements it to define its default natural sorting order.\n*   **Comparator**: An external comparison strategy passed dynamically to sort collections in multiple ways.",
+    "summary": "Comparator is an external strategy interface. It enables multiple custom sorting rules, and can be chained to sort by multiple fields.",
+    "id": 53
+  },
+  {
+    "category": "collections",
+    "title": "Module 31: equals() & hashCode()",
+    "description": "The strict contract between equals and hashCode, hashing collisions, and consequences of violating the contract.",
+    "examples": "### 1. The Hashing Contract\nIf you override `equals()`, you **must** also override `hashCode()`.\n*   **Rule 1**: If two objects are equal according to `equals(Object)`, calling `hashCode()` on each must return the **same integer value**.\n*   **Rule 2**: If two objects return different hash codes, they are guaranteed to be unequal. If they return the same hash code, they are not necessarily equal (this is called a hash collision).\n\n---\n\n### 2. Violating the Contract\nIf you do not override `hashCode()`, the JVM will assign different hash codes to objects with identical properties.\n*   **Consequence**: If you try to look up an object in a `HashMap` or `HashSet` using an identical key instance, the map will look in the wrong bucket and return `null`.",
+    "summary": "If equals() is overridden, hashCode() must be overridden too. Violating this contract causes HashMaps and HashSets to lose track of stored objects.",
+    "id": 54
+  },
+  {
+    "category": "collections",
+    "title": "Module 32: Fail-Fast & Fail-Safe",
+    "description": "Iterator modification exception checks, comparing fail-fast modCounts to fail-safe copying systems.",
+    "examples": "### 1. Fail-Fast Iterators\nFail-fast iterators inspect the collection directly.\n*   **modCount**: The iterator tracks the collection's structure modification count (`modCount`).\n*   **Exception**: If another thread modifies the collection structurally while the iterator is traversing it, the iterator throws a `ConcurrentModificationException` instantly.\n*   **Examples**: ArrayList, HashMap, HashSet iterators.\n\n---\n\n### 2. Fail-Safe (Weakly Consistent) Iterators\nFail-safe iterators inspect a copy of the collection, rather than the original memory directly:\n*   **No Exception**: Modifying the original collection during traversal does not affect the iterator's copy, so no exception is thrown.\n*   **Examples**: `CopyOnWriteArrayList`, `ConcurrentHashMap` iterators.",
+    "summary": "Fail-fast iterators throw ConcurrentModificationException if the collection changes during iteration. Fail-safe iterators traverse a copy to avoid exceptions.",
+    "id": 55
+  },
+  {
+    "category": "collections",
+    "title": "Module 33: Concurrent Collections",
+    "description": "Thread-safe concurrent collections: ConcurrentHashMap, CopyOnWriteArrayList, and BlockingQueue structures.",
+    "examples": "### 1. ConcurrentHashMap\nInstead of locking the entire map like a synchronized `Hashtable`:\n*   **Segment Locking**: Locks individual bucket nodes using CAS (Compare-And-Swap) operations and synchronized blocks on node heads, allowing multiple threads to read and write concurrently.\n\n---\n\n### 2. CopyOnWriteArrayList\nA thread-safe list designed for collections that are read frequently but modified rarely:\n*   **Copy-on-write**: Writing to the list creates a complete copy of the underlying array, updating the reference once the write completes. Reads do not block, avoiding lock overhead.\n\n---\n\n### 3. BlockingQueue\nA Queue that coordinates threads in producer-consumer architectures:\n*   `put()`: Blocks the producer thread if the queue is full.\n*   `take()`: Blocks the consumer thread if the queue is empty.",
+    "summary": "ConcurrentHashMap locks bucket nodes individually. CopyOnWriteArrayList creates a copy of the array for every write operation, making reads fast and lock-free.",
+    "id": 56
+  },
+  {
+    "category": "collections",
+    "title": "Module 34: Utility Class - Collections",
+    "description": "The Collections utility class: sorting, searching, reversing, and wrapping unmodifiable or synchronized collections.",
+    "examples": "### 1. Utility Methods\n`java.util.Collections` is a helper utility class containing static algorithms:\n*   `sort(List<T> list)`: Sorts a list in `O(n log n)` time.\n*   `reverse(List<?> list)`: Reverses list ordering.\n*   `shuffle(List<?> list)`: Randomizes list elements.\n*   `binarySearch(List, key)`: Finds key using binary search.\n*   `frequency(Collection, obj)`: Counts matching elements.\n\n---\n\n### 2. Wrapper Methods\nCollections can wrap standard collections in read-only or thread-safe views:\n*   `unmodifiableList(List<? extends T> list)`: Returns a read-only view. Attempts to modify it throw an `UnsupportedOperationException`.\n*   `synchronizedList(List<T> list)`: Wraps the list in a thread-safe synchronized object.",
+    "summary": "Collections provides static helper methods to sort, search, and shuffle items, as well as wrappers to create unmodifiable or synchronized collections.",
+    "id": 57
+  },
+  {
+    "category": "collections",
+    "title": "Module 35: Arrays Utility",
+    "description": "The Arrays utility class: sorting, binary search, copying ranges, and deep equality checks.",
+    "examples": "### 1. Static Array Operations\n`java.util.Arrays` provides static helper methods to manipulate arrays:\n*   `Arrays.sort(T[] a)`: Sorts primitives or object arrays.\n*   `Arrays.binarySearch(T[] a, T key)`: Performs binary search.\n*   `Arrays.fill(T[] a, T val)`: Fills all array index slots with a value.\n*   `Arrays.copyOf(T[] original, int newLength)`: Resizes an array by allocating a new array and copying elements over.\n\n---\n\n### 2. Array Equality Checks\n*   `equals(arr1, arr2)`: Returns true if arrays have the same length and elements are equal at corresponding indexes.\n*   `deepEquals(arr1, arr2)`: Recursively checks nested multi-dimensional arrays for equality.",
+    "summary": "Arrays provides static helper methods to sort, search, copy, fill, and check equality on single or multi-dimensional array buffers.",
+    "id": 58
+  },
+  {
+    "category": "collections",
+    "title": "Module 36: Java 8 Collection Features",
+    "description": "Java 8 collection features: stream operations, parallel processing, and Collectors grouping mappings.",
+    "examples": "### 1. Declarative Streams pipelines\nJava 8 allows collections to spawn functional streams:\n```java\nStream<T> stream = collection.stream();\n```\n\n---\n\n### 2. Common Collectors Mappings\nUse `Collectors` to group or transform stream results:\n*   `groupingBy()`: Groups stream items by a key, similar to SQL `GROUP BY`.\n*   `partitioningBy()`: Splits stream items into two lists based on a boolean condition.\n*   `joining()`: Concatenates stream elements into a single string.\n\n```java\n// Group employees by department\nMap<Department, List<Employee>> byDept = employees.stream()\n    .collect(Collectors.groupingBy(Employee::getDepartment));\n```",
+    "summary": "Java 8 streams enable declarative collections processing. Collectors provides helper methods like groupingBy() and partitioningBy() to aggregate elements.",
+    "id": 59
+  },
+  {
+    "category": "collections",
+    "title": "Module 37: Immutable Collections",
+    "description": "Creating immutable collections in Java 9+ using factory methods, and comparisons to unmodifiable wrappers.",
+    "examples": "### 1. Factory Methods (Java 9+)\nJava 9 introduced convenient static factory methods to instantiate immutable collections:\n```java\nList<String> list = List.of(\"A\", \"B\");\nSet<String> set = Set.of(\"A\", \"B\");\nMap<String, Integer> map = Map.of(\"A\", 1, \"B\", 2);\n```\n\n---\n\n### 2. Immutable vs. Unmodifiable Wrappers\n*   **Unmodifiable Wrapper**: Returns a read-only view of a backing collection. If the backing collection is modified, the unmodifiable wrapper reflects those changes.\n*   **Immutable Collection**: Truly standalone. It contains its own data, and cannot be modified under any circumstances. Modifying it throws an `UnsupportedOperationException`.",
+    "summary": "List.of(), Set.of(), and Map.of() create immutable collections. Unlike unmodifiable wrappers, true immutable collections are decoupled from backing data sources.",
+    "id": 60
+  },
+  {
+    "category": "collections",
+    "title": "Module 38: Time Complexity",
+    "description": "JCF performance cheat sheet comparing time complexities across operations.",
+    "examples": "### 1. Performance Reference Table\nJCF time complexity reference:\n\n| Class | Search / Get | Insert | Delete | Ordering |\n| :--- | :--- | :--- | :--- | :--- |\n| **ArrayList** | `O(1)` by index | `O(1)` amortized | `O(n)` (Shifting) | Insertion Order |\n| **LinkedList** | `O(n)` | `O(1)` (Append) | `O(1)` (Append) | Insertion Order |\n| **HashSet** | `O(1)` (Average) | `O(1)` (Average) | `O(1)` (Average) | Unordered |\n| **TreeSet** | `O(log n)` | `O(log n)` | `O(log n)` | Sorted Order |\n| **PriorityQueue** | `O(n)` | `O(log n)` | `O(log n)` | Priority Order |\n| **HashMap** | `O(1)` (Average) | `O(1)` (Average) | `O(1)` (Average) | Unordered |\n| **TreeMap** | `O(log n)` | `O(log n)` | `O(log n)` | Sorted Order |\n\n---\n\n### 2. Key Details\n*   **Linked list traversal**: Finding an element by index in a LinkedList is `O(n)` because pointers must be traversed sequentially from `head` or `tail`.\n*   **HashMap resizing**: Inserting elements into a HashMap is `O(1)` average, but becomes `O(n)` when the map is resized and rehashed.",
+    "summary": "HashMap/HashSet lookups take O(1) average. TreeSet/TreeMap operations take O(log n) using Red-Black trees. ArrayList offers O(1) random index access.",
+    "id": 61
+  },
+  {
+    "category": "collections",
+    "title": "Module 39: Interview Scenarios",
+    "description": "Answers to top collections interview questions.",
+    "examples": "### 1. Key Interview Questions & Answers\n*   **Why is ArrayList generally faster than LinkedList?** ArrayList stores elements contiguously, enabling CPU cache locality. LinkedList nodes are scattered across the Heap, causing frequent cache misses and slow pointer traversals.\n*   **How does collision handling work in HashMap?** HashMap chains colliding keys in a linked list. In Java 8, if a bucket list size reaches 8, it converts to a Red-Black Tree to keep lookups fast.\n*   **Why doesn't Map extend Collection?** Map stores Key-Value pairs, which require different operations (e.g. `put(k, v)`) than Collection's single-value operations (e.g. `add(e)`).\n*   **Why do we override both equals() and hashCode()?** To maintain the hashing contract. If two equal objects return different hash codes, HashMaps and HashSets will look in the wrong bucket and fail to locate them.\n*   **Why are String keys commonly used in HashMap?** Strings are immutable. Their hash code is cached during creation and never changes, preventing lookup failures due to key modification.",
+    "summary": "Understand JCF performance tradeoffs. HashMap uses chaining and treeification. Override equals() and hashCode() to maintain JCF contracts. Strings make ideal Map keys.",
+    "id": 62
+  },
+  {
+    "id": 63,
     "category": "jvm_internals",
     "title": "JVM Memory & Garbage Collection",
     "description": "The JVM runs Java bytecode on host platforms, partitioning runtime areas into stack frames, heaps, registers, and metaspace templates. Garbage Collection employs tracing reachability paths from GC roots to compact, sweep, and recycle memory.",
@@ -200,7 +504,7 @@
     "summary": "Understand Stack frames for method execution context, Heap segments (Eden, Survivors, Old Gen) for object lifecycle divisions, GC Roots for reachability trace origins, and G1/ZGC low latency concurrent sweeps."
   },
   {
-    "id": 26,
+    "id": 64,
     "category": "spring_framework",
     "title": "Spring Boot Basics & Bean Lifecycle",
     "description": "Spring Boot automates dependency configuration and environment setups. At its core, the IoC Container manages object creation, dependency injection pipelines, stereotyping component scopes, and intercepting initialization/destruction callbacks.",
@@ -208,7 +512,7 @@
     "summary": "Understand Inversion of Control (IoC), Constructor vs Field injection, Component Scanning, Singleton/Prototype scopes, complete PostConstruct/PreDestroy lifecycles, and Auto-Configuration mechanisms."
   },
   {
-    "id": 27,
+    "id": 65,
     "category": "microservices",
     "title": "Microservices Architecture & REST API",
     "description": "Microservices decompose monolithic programs into bounded context services with independent databases. Distributed communication employs REST HTTP endpoints or Kafka events coordinated via API Gateways, Service Discovery registries, and Saga eventual consistency workflows.",

@@ -94,12 +94,10 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   // Dark Mode Switch
                   SwitchListTile(
-                    title: const Text('Dark Mode'),
+                    title: const Text('Dark Mode (Static)'),
                     secondary: Icon(Icons.dark_mode, color: theme.colorScheme.primary),
-                    value: isDark,
-                    onChanged: (_) {
-                      ref.read(darkModeProvider.notifier).toggle();
-                    },
+                    value: true,
+                    onChanged: null,
                   ),
                   const Divider(height: 1, indent: 56),
 

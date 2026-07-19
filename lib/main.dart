@@ -38,7 +38,7 @@ class JavaMasterApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      themeMode: ThemeMode.dark,
       builder: (context, child) {
         // Dynamic Text Scaling multiplier
         return MediaQuery(

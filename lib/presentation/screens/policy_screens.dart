@@ -15,8 +15,7 @@ class AboutPage extends StatelessWidget {
           children: [
             const CircleAvatar(
               radius: 54,
-              backgroundColor: Colors.blue,
-              child: Icon(Icons.school, size: 54, color: Colors.white),
+              backgroundImage: AssetImage('assets/images/profile.png'),
             ),
             const SizedBox(height: 20),
             Text(
@@ -41,7 +40,7 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _buildInfoRow(context, 'Version', '1.0.0 (Build 1)'),
             _buildInfoRow(context, 'Developer', 'Sai Kumar'),
-            _buildInfoRow(context, 'Email Support', 'support@saikumaredutech.com'),
+            _buildInfoRow(context, 'Email Support', 'dmartcampous@gmail.com'),
             _buildInfoRow(context, 'Location', 'Offline First (Local Storage)'),
           ],
         ),
@@ -107,7 +106,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             _buildSection(
               theme,
               '5. Contact Support',
-              'For queries regarding security standards, terms of use, or learning resources, reach us at support@saikumaredutech.com.',
+              'For queries regarding security standards, terms of use, or learning resources, reach us at dmartcampous@gmail.com.',
             ),
             const SizedBox(height: 32),
           ],
