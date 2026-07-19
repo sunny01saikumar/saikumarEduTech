@@ -1,6 +1,294 @@
 [
   {
-    "id": 1,
+    "category": "arrays",
+    "title": "Level 1: Array Basics (Print, Reverse, Copy, Clone, Get Middle)",
+    "problemStatement": "Implement basic operations on 1D arrays: print elements, reverse elements, copy, clone, find length, and access first, last, and middle elements.",
+    "explanation": "These are the fundamental building blocks of array manipulation. Cloning creates a deep copy of the array on the heap, while normal copying copies references or values. Reversing is implemented using a two-pointer approach swapping elements in-place.",
+    "algorithm": "1. Print: Iterate from index 0 to length-1 and print.\n2. Reverse: Initialize left=0, right=length-1. Swap elements at left and right, increment left, decrement right.\n3. Clone: Call array.clone() or allocate new array and copy manually.\n4. Access: First element is at index 0, last is at length-1, middle is at length/2.",
+    "timeComplexity": "O(N) for print/reverse/copy; O(1) for access",
+    "spaceComplexity": "O(1) auxiliary for reverse; O(N) for copy/clone",
+    "code": "public class ArrayBasics {\n    public static void printArray(int[] arr) {\n        System.out.print(\"Array: [\");\n        for (int i = 0; i < arr.length; i++) {\n            System.out.print(arr[i] + (i == arr.length - 1 ? \"\" : \", \"));\n        }\n        System.out.println(\"]\");\n    }\n\n    public static void reverseArray(int[] arr) {\n        int left = 0, right = arr.length - 1;\n        while (left < right) {\n            int temp = arr[left];\n            arr[left] = arr[right];\n            arr[right] = temp;\n            left++;\n            right--;\n        }\n    }\n\n    public static int[] copyArray(int[] arr) {\n        int[] copy = new int[arr.length];\n        System.arraycopy(arr, 0, copy, 0, arr.length);\n        return copy;\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {10, 20, 30, 40, 50};\n        printArray(arr);\n        System.out.println(\"First: \" + arr[0] + \", Last: \" + arr[arr.length - 1] + \", Middle: \" + arr[arr.length / 2]);\n        \n        reverseArray(arr);\n        System.out.print(\"Reversed \");\n        printArray(arr);\n        \n        int[] cloned = arr.clone();\n        System.out.println(\"Cloned Array Length: \" + cloned.length);\n    }\n}",
+    "output": "Array: [10, 20, 30, 40, 50]\nFirst: 10, Last: 50, Middle: 30\nReversed Array: [50, 40, 30, 20, 10]\nCloned Array Length: 5",
+    "id": 1
+  },
+  {
+    "category": "arrays",
+    "title": "Level 2: Searching (Linear, Binary, Bounds, Insert Position)",
+    "problemStatement": "Implement searching algorithms: Linear Search (count occurrences, find first/last occurrence) and Binary Search (recursive search, lower/upper bounds, ceiling/floor, and search insert position).",
+    "explanation": "Linear search checks every element, working on unsorted arrays. Binary search works on sorted arrays by continuously halving the search space. Lower/Upper bounds identify insertion indexes or occurrences by finding boundary conditions.",
+    "algorithm": "1. Linear: Loop through array. Track occurrences, first match index, last match index.\n2. Binary: Set low=0, high=length-1. While low<=high, calculate mid. If key matches mid, return index. If key<mid, high=mid-1; else low=mid+1.\n3. Lower Bound: Find first index where element is >= target. Move high to mid-1 on matches.",
+    "timeComplexity": "O(N) for Linear Search; O(log N) for Binary Search",
+    "spaceComplexity": "O(1) auxiliary",
+    "code": "public class ArraySearching {\n    public static int linearSearch(int[] arr, int target) {\n        for (int i = 0; i < arr.length; i++) {\n            if (arr[i] == target) return i;\n        }\n        return -1;\n    }\n\n    public static int binarySearch(int[] arr, int target) {\n        int low = 0, high = arr.length - 1;\n        while (low <= high) {\n            int mid = low + (high - low) / 2;\n            if (arr[mid] == target) return mid;\n            else if (arr[mid] < target) low = mid + 1;\n            else high = mid - 1;\n        }\n        return -1;\n    }\n\n    public static int lowerBound(int[] arr, int target) {\n        int low = 0, high = arr.length - 1;\n        int ans = arr.length;\n        while (low <= high) {\n            int mid = low + (high - low) / 2;\n            if (arr[mid] >= target) {\n                ans = mid;\n                high = mid - 1; // Look on left for lower index\n            } else {\n                low = mid + 1;\n            }\n        }\n        return ans;\n    }\n\n    public static void main(String[] args) {\n        int[] unsorted = {4, 2, 8, 5, 2, 9};\n        int[] sorted = {2, 3, 5, 5, 8, 9};\n        System.out.println(\"Linear Search: \" + linearSearch(unsorted, 5));\n        System.out.println(\"Binary Search: \" + binarySearch(sorted, 8));\n        System.out.println(\"Lower Bound of 5: \" + lowerBound(sorted, 5));\n    }\n}",
+    "output": "Linear Search: 3\nBinary Search: 4\nLower Bound of 5: 2",
+    "id": 2
+  },
+  {
+    "category": "arrays",
+    "title": "Level 3: Min & Max (Largest, Smallest, Kth Elements, Max Diff)",
+    "problemStatement": "Find the largest, smallest, second/third largest, Kth largest/smallest elements, and calculate the maximum difference and maximum product.",
+    "explanation": "Finding the largest/smallest element is O(N). Second largest can be found in one pass by keeping two variables (max1, max2). Kth elements can be solved using Sorting O(N log N) or a Min-Heap/Max-Heap O(N log K). Max difference is found by subtracting the minimum value from the maximum value (if order matters, use single-pass tracking).",
+    "algorithm": "1. Second Largest: If current > max1, max2=max1, max1=current. If current < max1 and > max2, max2=current.\n2. Kth Largest: Insert elements into a Min-Heap. If size > K, poll(). The top of the heap is the Kth largest.",
+    "timeComplexity": "O(N) for min/max/second-largest; O(N log K) for Kth largest using a Min-Heap",
+    "spaceComplexity": "O(K) auxiliary space for heap",
+    "code": "import java.util.PriorityQueue;\n\npublic class MinMaxProblems {\n    public static int getSecondLargest(int[] arr) {\n        int largest = Integer.MIN_VALUE, second = Integer.MIN_VALUE;\n        for (int num : arr) {\n            if (num > largest) {\n                second = largest;\n                largest = num;\n            } else if (num > second && num != largest) {\n                second = num;\n            }\n        }\n        return second;\n    }\n\n    public static int getKthLargest(int[] arr, int k) {\n        PriorityQueue<Integer> minHeap = new PriorityQueue<>();\n        for (int num : arr) {\n            minHeap.add(num);\n            if (minHeap.size() > k) {\n                minHeap.poll();\n            }\n        }\n        return minHeap.peek();\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {12, 35, 1, 10, 34, 1};\n        System.out.println(\"Second Largest: \" + getSecondLargest(arr));\n        System.out.println(\"3rd Largest: \" + getKthLargest(arr, 3));\n    }\n}",
+    "output": "Second Largest: 34\n3rd Largest: 12",
+    "id": 3
+  },
+  {
+    "category": "arrays",
+    "title": "Level 4: Sum Problems (Two Sum, Three Sum, Four Sum, Closest)",
+    "problemStatement": "Implement sum-based challenges: sum of elements, Two Sum, Three Sum, Four Sum, and Closest Three Sum.",
+    "explanation": "Two Sum is solved in O(N) using a HashMap. Three Sum and Four Sum are solved using sorting and the two-pointer approach, which reduces complexity from brute-force O(N^3)/O(N^4) to O(N^2) and O(N^3) respectively. Closest Three Sum tracks the minimum absolute difference between the sum and a target value.",
+    "algorithm": "1. Three Sum: Sort array. Loop index i. Set left=i+1, right=length-1. If sum==0, record triplet. If sum<0, left++; else right--. Skip duplicates.\n2. Closest Three Sum: Sort array. Loop index i, two pointers left/right. Update closest sum if |target - current| < |target - closest|.",
+    "timeComplexity": "O(N) for Two Sum; O(N^2) for Three Sum & Closest Three Sum",
+    "spaceComplexity": "O(N) for HashMap; O(1) for two-pointer sorting",
+    "code": "import java.util.*;\n\npublic class SumProblems {\n    public static List<List<Integer>> threeSum(int[] nums) {\n        Arrays.sort(nums);\n        List<List<Integer>> res = new ArrayList<>();\n        for (int i = 0; i < nums.length - 2; i++) {\n            if (i > 0 && nums[i] == nums[i - 1]) continue; // Skip duplicates\n            int left = i + 1, right = nums.length - 1;\n            while (left < right) {\n                int sum = nums[i] + nums[left] + nums[right];\n                if (sum == 0) {\n                    res.add(Arrays.asList(nums[i], nums[left], nums[right]));\n                    while (left < right && nums[left] == nums[left + 1]) left++; // Skip duplicates\n                    while (left < right && nums[right] == nums[right - 1]) right--; // Skip duplicates\n                    left++; right--;\n                } else if (sum < 0) left++;\n                else right--;\n            }\n        }\n        return res;\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {-1, 0, 1, 2, -1, -4};\n        System.out.println(\"Three Sum Triplets: \" + threeSum(nums));\n    }\n}",
+    "output": "Three Sum Triplets: [[-1, -1, 2], [-1, 0, 1]]",
+    "id": 4
+  },
+  {
+    "category": "arrays",
+    "title": "Level 5: Frequency Problems (Duplicate Count, Majority Element I & II)",
+    "problemStatement": "Count element frequencies, find duplicate counts, locate unique/missing elements, and find Majority Elements (elements with frequency > N/2 and > N/3).",
+    "explanation": "Majority Element I and II are solved in O(N) time and O(1) space using the Boyer-Moore Voting Algorithm. Frequencies are tracked using a HashMap, and missing elements in sequential arrays can be calculated using arithmetic sum formulas.",
+    "algorithm": "1. Boyer-Moore (N/2): Maintain a candidate and count. Loop elements. If count is 0, assign candidate=element. If element matches candidate, increment count; else decrement count.\n2. Boyer-Moore (N/3): Maintain two candidates and two counts. Verify frequencies in a second pass.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space (using Boyer-Moore)",
+    "code": "import java.util.*;\n\npublic class FrequencyProblems {\n    public static int getMajorityElement(int[] nums) {\n        int count = 0, candidate = 0;\n        for (int num : nums) {\n            if (count == 0) candidate = num;\n            count += (num == candidate) ? 1 : -1;\n        }\n        return candidate;\n    }\n\n    public static List<Integer> majorityElementTwo(int[] nums) {\n        int number1 = 0, number2 = 0, count1 = 0, count2 = 0;\n        for (int num : nums) {\n            if (num == number1) count1++;\n            else if (num == number2) count2++;\n            else if (count1 == 0) { number1 = num; count1 = 1; }\n            else if (count2 == 0) { number2 = num; count2 = 1; }\n            else { count1--; count2--; }\n        }\n        // Verify candidates\n        count1 = 0; count2 = 0;\n        for (int num : nums) {\n            if (num == number1) count1++;\n            else if (num == number2) count2++;\n        }\n        List<Integer> result = new ArrayList<>();\n        if (count1 > nums.length / 3) result.add(number1);\n        if (count2 > nums.length / 3) result.add(number2);\n        return result;\n    }\n\n    public static void main(String[] args) {\n        int[] arr1 = {2, 2, 1, 1, 1, 2, 2};\n        int[] arr2 = {1, 1, 1, 3, 3, 2, 2, 2};\n        System.out.println(\"Majority (N/2): \" + getMajorityElement(arr1));\n        System.out.println(\"Majority (N/3): \" + majorityElementTwo(arr2));\n    }\n}",
+    "output": "Majority (N/2): 2\nMajority (N/3): [1, 2]",
+    "id": 5
+  },
+  {
+    "category": "arrays",
+    "title": "Level 6: Rotation Problems (Rotate Left/Right, Rotate by K, Rotate Matrix)",
+    "problemStatement": "Rotate an array left/right by one, by K positions, find rotation count, and rotate an N x N matrix by 90 degrees.",
+    "explanation": "Rotating by K positions can be done in O(N) time and O(1) space using the reverse algorithm. Matrix rotation by 90 degrees is achieved by transposing the matrix first, then reversing each row.",
+    "algorithm": "1. Rotate by K: Reverse first N-K elements, reverse remaining K elements, then reverse the entire array.\n2. Rotate Matrix: Transpose (swap matrix[i][j] with matrix[j][i]). Reverse each row in-place.",
+    "timeComplexity": "O(N) for array rotation; O(N^2) for matrix rotation",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "public class ArrayRotation {\n    public static void rotate(int[] nums, int k) {\n        k = k % nums.length;\n        reverse(nums, 0, nums.length - 1);\n        reverse(nums, 0, k - 1);\n        reverse(nums, k, nums.length - 1);\n    }\n\n    private static void reverse(int[] nums, int start, int end) {\n        while (start < end) {\n            int temp = nums[start];\n            nums[start] = nums[end];\n            nums[end] = temp;\n            start++; end--;\n        }\n    }\n\n    public static void rotateMatrix(int[][] matrix) {\n        int n = matrix.length;\n        // Transpose\n        for (int i = 0; i < n; i++) {\n            for (int j = i; j < n; j++) {\n                int temp = matrix[i][j];\n                matrix[i][j] = matrix[j][i];\n                matrix[j][i] = temp;\n            }\n        }\n        // Reverse rows\n        for (int i = 0; i < n; i++) {\n            for (int j = 0; j < n / 2; j++) {\n                int temp = matrix[i][j];\n                matrix[i][j] = matrix[i][n - 1 - j];\n                matrix[i][n - 1 - j] = temp;\n            }\n        }\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {1, 2, 3, 4, 5};\n        rotate(arr, 2);\n        System.out.print(\"Rotated Array: \");\n        for (int x : arr) System.out.print(x + \" \");\n        System.out.println();\n    }\n}",
+    "output": "Rotated Array: 4 5 1 2 3 ",
+    "id": 6
+  },
+  {
+    "category": "arrays",
+    "title": "Level 7: Rearrangement (Move Zeros, Move Negatives, Sort 0 1 2)",
+    "problemStatement": "Rearrange arrays: move zeros to the end, move negatives to the left, sort an array of 0s, 1s, and 2s (Dutch National Flag), and alternate positive/negative numbers.",
+    "explanation": "Sorting 0s, 1s, and 2s is solved in O(N) using three pointers (low, mid, high) in a single pass. Moving zeros to the end uses a pointer to keep track of the last non-zero position.",
+    "algorithm": "1. Dutch National Flag: Keep low=0, mid=0, high=length-1. If arr[mid] == 0, swap(low, mid), low++, mid++. If arr[mid] == 1, mid++. If arr[mid] == 2, swap(mid, high), high--.\n2. Move Zeros: Maintain index pointer. Iterate array, if current != 0, write to index, index++.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "public class ArrayRearrange {\n    public static void moveZeroes(int[] nums) {\n        int lastNonZero = 0;\n        for (int i = 0; i < nums.length; i++) {\n            if (nums[i] != 0) {\n                int temp = nums[i];\n                nums[i] = nums[lastNonZero];\n                nums[lastNonZero] = temp;\n                lastNonZero++;\n            }\n        }\n    }\n\n    public static void sortColors(int[] nums) {\n        int low = 0, mid = 0, high = nums.length - 1;\n        while (mid <= high) {\n            if (nums[mid] == 0) {\n                swap(nums, low++, mid++);\n            } else if (nums[mid] == 1) {\n                mid++;\n            } else {\n                swap(nums, mid, high--);\n            }\n        }\n    }\n\n    private static void swap(int[] nums, int i, int j) {\n        int temp = nums[i];\n        nums[i] = nums[j];\n        nums[j] = temp;\n    }\n\n    public static void main(String[] args) {\n        int[] arr1 = {0, 1, 0, 3, 12};\n        int[] arr2 = {2, 0, 2, 1, 1, 0};\n        moveZeroes(arr1);\n        sortColors(arr2);\n        System.out.print(\"Moved Zeros: \");\n        for (int x : arr1) System.out.print(x + \" \");\n        System.out.print(\"\\nSorted Colors: \");\n        for (int x : arr2) System.out.print(x + \" \");\n        System.out.println();\n    }\n}",
+    "output": "Moved Zeros: 1 3 12 0 0 \nSorted Colors: 0 0 1 1 2 2 ",
+    "id": 7
+  },
+  {
+    "category": "arrays",
+    "title": "Level 8: Sorting Based Problems (Bubble, Insertion, Merge, Quick Sort)",
+    "problemStatement": "Implement classic sorting algorithms: Bubble Sort, Selection Sort, Insertion Sort, Merge Sort, and Quick Sort.",
+    "explanation": "Bubble, Selection, and Insertion sorts are O(N^2) algorithms suitable for small datasets. Merge Sort is a divide-and-conquer algorithm with a guaranteed O(N log N) complexity, but requires extra memory. Quick Sort is an in-place divide-and-conquer algorithm with an O(N log N) average complexity.",
+    "algorithm": "1. Quick Sort: Pick a pivot. Partition array such that elements smaller than pivot are on the left, and larger elements are on the right. Recursively sort partitions.\n2. Merge Sort: Divide array into halves. Recursively sort halves, then merge sorted sub-arrays using temporary buffers.",
+    "timeComplexity": "O(N log N) average for Quick/Merge; O(N^2) for Bubble/Insertion/Selection",
+    "spaceComplexity": "O(N) for Merge Sort; O(log N) recursion stack for Quick Sort",
+    "code": "public class ArraySortingAlgorithms {\n    public static void quickSort(int[] arr, int low, int high) {\n        if (low < high) {\n            int pIndex = partition(arr, low, high);\n            quickSort(arr, low, pIndex - 1);\n            quickSort(arr, pIndex + 1, high);\n        }\n    }\n\n    private static int partition(int[] arr, int low, int high) {\n        int pivot = arr[high];\n        int i = low - 1;\n        for (int j = low; j < high; j++) {\n            if (arr[j] < pivot) {\n                i++;\n                swap(arr, i, j);\n            }\n        }\n        swap(arr, i + 1, high);\n        return i + 1;\n    }\n\n    private static void swap(int[] arr, int i, int j) {\n        int temp = arr[i];\n        arr[i] = arr[j];\n        arr[j] = temp;\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {64, 34, 25, 12, 22, 11, 90};\n        quickSort(arr, 0, arr.length - 1);\n        System.out.print(\"Quick Sorted: \");\n        for (int x : arr) System.out.print(x + \" \");\n        System.out.println();\n    }\n}",
+    "output": "Quick Sorted: 11 12 22 25 34 64 90 ",
+    "id": 8
+  },
+  {
+    "category": "arrays",
+    "title": "Level 9: Prefix Sum (Running Sum, Range Sum, Subarray Sum K)",
+    "problemStatement": "Implement prefix sum concepts: Running Sum, Range Sum Query, Subarray Sum Equals K, and Pivot Index.",
+    "explanation": "Prefix sum pre-calculates cumulative sums, turning O(N) range queries into O(1) checks. Subarray Sum Equals K is solved in O(N) using a HashMap to store prefix sum frequencies.",
+    "algorithm": "1. Subarray Sum Equals K: Track running prefix sum. If map contains (prefixSum - K), add its frequency to total count. Store prefixSum frequency in map.\n2. Pivot Index: Total sum = sum of all elements. Track leftSum while iterating. RightSum = Total - leftSum - current. If leftSum == rightSum, return current index.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(N) for HashMap in Subarray Sum Equals K",
+    "code": "import java.util.HashMap;\n\npublic class PrefixSumProblems {\n    public static int subarraySum(int[] nums, int k) {\n        int count = 0, sum = 0;\n        HashMap<Integer, Integer> map = new HashMap<>();\n        map.put(0, 1); // Base case: prefix sum is 0\n        for (int num : nums) {\n            sum += num;\n            if (map.containsKey(sum - k)) {\n                count += map.get(sum - k);\n            }\n            map.put(sum, map.getOrDefault(sum, 0) + 1);\n        }\n        return count;\n    }\n\n    public static int pivotIndex(int[] nums) {\n        int totalSum = 0, leftSum = 0;\n        for (int num : nums) totalSum += num;\n        for (int i = 0; i < nums.length; i++) {\n            if (leftSum == totalSum - leftSum - nums[i]) return i;\n            leftSum += nums[i];\n        }\n        return -1;\n    }\n\n    public static void main(String[] args) {\n        int[] arr1 = {1, 1, 1};\n        int[] arr2 = {1, 7, 3, 6, 5, 6};\n        System.out.println(\"Subarrays with sum 2: \" + subarraySum(arr1, 2));\n        System.out.println(\"Pivot Index: \" + pivotIndex(arr2));\n    }\n}",
+    "output": "Subarrays with sum 2: 2\nPivot Index: 3",
+    "id": 9
+  },
+  {
+    "category": "arrays",
+    "title": "Level 10: Sliding Window (Fixed size K, Variable size, Longest ones)",
+    "problemStatement": "Solve sliding window problems: Max Sum Subarray of size K, Longest Subarray with Sum K, and Longest Ones (flip at most K zeros).",
+    "explanation": "Sliding window optimizes nested loop searches by maintaining window borders (left and right pointers) dynamically. Fixed windows shift both borders together. Variable windows expand the right border, shrinking the left border only when validation constraints fail.",
+    "algorithm": "1. Max Sum Subarray: Sum first K elements. Slide window from K to N by adding arr[i] and subtracting arr[i-K], updating max sum.\n2. Longest Subarray Sum K: Maintain left pointer and sum. Expand right pointer. If sum > K, shrink left until sum <= K.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "public class SlidingWindow {\n    public static int maxSubarraySumK(int[] arr, int k) {\n        int max = 0, windowSum = 0;\n        for (int i = 0; i < k; i++) windowSum += arr[i];\n        max = windowSum;\n        for (int i = k; i < arr.length; i++) {\n            windowSum += arr[i] - arr[i - k];\n            max = Math.max(max, windowSum);\n        }\n        return max;\n    }\n\n    public static int longestOnes(int[] nums, int k) {\n        int left = 0, right;\n        for (right = 0; right < nums.length; right++) {\n            if (nums[right] == 0) k--;\n            if (k < 0) {\n                if (nums[left] == 0) k++;\n                left++;\n            }\n        }\n        return right - left;\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {100, 200, 300, 400};\n        int[] binary = {1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0};\n        System.out.println(\"Max Sum Subarray Size 2: \" + maxSubarraySumK(arr, 2));\n        System.out.println(\"Longest Ones (K=2): \" + longestOnes(binary, 2));\n    }\n}",
+    "output": "Max Sum Subarray Size 2: 700\nLongest Ones (K=2): 6",
+    "id": 10
+  },
+  {
+    "category": "arrays",
+    "title": "Level 11: Two Pointer (Remove Duplicates, Container, Trapping Rain Water)",
+    "problemStatement": "Implement two-pointer designs: remove duplicates in-place, Container with Most Water, and Trapping Rain Water.",
+    "explanation": "Two-pointer algorithms reduce time complexity by scanning from both ends (left and right) toward the middle. Trapping Rain Water keeps left/right max height pointers, calculating water capacity greedily.",
+    "algorithm": "1. Remove Duplicates: Keep read and write pointers. If arr[read] != arr[write-1], update arr[write++] = arr[read].\n2. Container: Set left=0, right=length-1. Area = (right-left) * min(arr[left], arr[right]). Move pointer with smaller height.\n3. Trapping Rain Water: If arr[left] < arr[right], check if arr[left] >= leftMax; if yes update leftMax, else add leftMax - arr[left] to total.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "public class TwoPointerProblems {\n    public static int removeDuplicates(int[] nums) {\n        if (nums.length == 0) return 0;\n        int i = 0;\n        for (int j = 1; j < nums.length; j++) {\n            if (nums[j] != nums[i]) {\n                i++;\n                nums[i] = nums[j];\n            }\n        }\n        return i + 1;\n    }\n\n    public static int maxArea(int[] height) {\n        int max = 0, left = 0, right = height.length - 1;\n        while (left < right) {\n            int area = (right - left) * Math.min(height[left], height[right]);\n            max = Math.max(max, area);\n            if (height[left] < height[right]) left++;\n            else right--;\n        }\n        return max;\n    }\n\n    public static void main(String[] args) {\n        int[] dup = {1, 1, 2, 2, 3};\n        int[] heights = {1, 8, 6, 2, 5, 4, 8, 3, 7};\n        System.out.println(\"Unique count: \" + removeDuplicates(dup));\n        System.out.println(\"Max Water Container: \" + maxArea(heights));\n    }\n}",
+    "output": "Unique count: 3\nMax Water Container: 49",
+    "id": 11
+  },
+  {
+    "category": "arrays",
+    "title": "Level 12: Kadane's Algorithm (Max/Min Subarray, Circular/Product Subarray)",
+    "problemStatement": "Solve maximum contiguous subarray sum (Kadane's), minimum subarray sum, maximum circular subarray sum, and maximum product subarray.",
+    "explanation": "Kadane's algorithm solves maximum subarray sum in O(N) by carrying forward positive sums. Maximum Product Subarray must also track local minimums, since multiplying two negatives creates a positive value.",
+    "algorithm": "1. Kadane: Maintain max_so_far and max_ending_here. For each element, max_ending_here = max(current, max_ending_here + current). max_so_far = max(max_so_far, max_ending_here).\n2. Max Product Subarray: Track currentMax and currentMin. Swap them if current is negative.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "public class KadanesAlgorithm {\n    public static int maxSubArray(int[] nums) {\n        int maxSoFar = nums[0], maxEndingHere = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            maxEndingHere = Math.max(nums[i], maxEndingHere + nums[i]);\n            maxSoFar = Math.max(maxSoFar, maxEndingHere);\n        }\n        return maxSoFar;\n    }\n\n    public static int maxProduct(int[] nums) {\n        int max = nums[0], min = nums[0], res = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            if (nums[i] < 0) {\n                int temp = max;\n                max = min;\n                min = temp;\n            }\n            max = Math.max(nums[i], max * nums[i]);\n            min = Math.min(nums[i], min * nums[i]);\n            res = Math.max(res, max);\n        }\n        return res;\n    }\n\n    public static void main(String[] args) {\n        int[] arr1 = {-2, 1, -3, 4, -1, 2, 1, -5, 4};\n        int[] arr2 = {2, 3, -2, 4};\n        System.out.println(\"Max Subarray Sum: \" + maxSubArray(arr1));\n        System.out.println(\"Max Product Subarray: \" + maxProduct(arr2));\n    }\n}",
+    "output": "Max Subarray Sum: 6\nMax Product Subarray: 6",
+    "id": 12
+  },
+  {
+    "category": "arrays",
+    "title": "Level 13: Matrix Problems (Spiral Traversal, Search Matrix, Set Zeroes)",
+    "problemStatement": "Implement matrix operations: Spiral Matrix traversal, Search 2D Matrix (binary search on row-major matrix), and Set Matrix Zeroes.",
+    "explanation": "A 2D matrix sorted row-wise and column-wise can be searched in O(log(M * N)) by flattening it to a 1D index representation. Set Matrix Zeroes is solved in-place by using the first row and column as flag indicators.",
+    "algorithm": "1. Spiral: Maintain boundaries: top, bottom, left, right. Traverse top row left-to-right, right column top-to-bottom, bottom row right-to-left, left column bottom-to-top. Shrink boundaries.\n2. Set Zeroes: If matrix[i][j]==0, set matrix[i][0]=0 and matrix[0][j]=0. Update remaining elements in a second pass.",
+    "timeComplexity": "O(M * N) for Spiral and Set Zeroes; O(log(M * N)) for Search Matrix",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "import java.util.*;\n\npublic class MatrixProblems {\n    public static List<Integer> spiralOrder(int[][] matrix) {\n        List<Integer> res = new ArrayList<>();\n        if (matrix.length == 0) return res;\n        int top = 0, bottom = matrix.length - 1;\n        int left = 0, right = matrix[0].length - 1;\n        while (top <= bottom && left <= right) {\n            for (int i = left; i <= right; i++) res.add(matrix[top][i]);\n            top++;\n            for (int i = top; i <= bottom; i++) res.add(matrix[i][right]);\n            right--;\n            if (top <= bottom) {\n                for (int i = right; i >= left; i--) res.add(matrix[bottom][i]);\n                bottom--;\n            }\n            if (left <= right) {\n                for (int i = bottom; i >= top; i--) res.add(matrix[i][left]);\n                left++;\n            }\n        }\n        return res;\n    }\n\n    public static boolean searchMatrix(int[][] matrix, int target) {\n        int m = matrix.length, n = matrix[0].length;\n        int low = 0, high = m * n - 1;\n        while (low <= high) {\n            int mid = low + (high - low) / 2;\n            int r = mid / n, c = mid % n;\n            if (matrix[r][c] == target) return true;\n            else if (matrix[r][c] < target) low = mid + 1;\n            else high = mid - 1;\n        }\n        return false;\n    }\n\n    public static void main(String[] args) {\n        int[][] mat = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};\n        System.out.println(\"Spiral Order: \" + spiralOrder(mat));\n        System.out.println(\"Search 5: \" + searchMatrix(mat, 5));\n    }\n}",
+    "output": "Spiral Order: [1, 2, 3, 6, 9, 8, 7, 4, 5]\nSearch 5: true",
+    "id": 13
+  },
+  {
+    "category": "arrays",
+    "title": "Level 14: Merge Intervals (Merge overlapping, Insert Interval, Meeting Rooms)",
+    "problemStatement": "Solve interval scheduling challenges: Merge Overlapping Intervals, Insert Interval, and Meeting Rooms (check if meetings overlap).",
+    "explanation": "Interval problems are solved by sorting intervals based on start times. We then compare the start time of the current interval with the end time of the previous interval to merge them.",
+    "algorithm": "1. Merge: Sort intervals. Create list. Add first interval. For each next interval, if start <= end of previous, update end of previous to max(end, end of previous). Else add new interval.",
+    "timeComplexity": "O(N log N) time complexity (due to sorting)",
+    "spaceComplexity": "O(N) for output intervals storage",
+    "code": "import java.util.*;\n\npublic class IntervalProblems {\n    public static int[][] mergeIntervals(int[][] intervals) {\n        if (intervals.length <= 1) return intervals;\n        Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));\n        List<int[]> merged = new ArrayList<>();\n        int[] current = intervals[0];\n        merged.add(current);\n        for (int[] interval : intervals) {\n            if (interval[0] <= current[1]) {\n                current[1] = Math.max(current[1], interval[1]); // Merge\n            } else {\n                current = interval;\n                merged.add(current);\n            }\n        }\n        return merged.toArray(new int[merged.size()][]);\n    }\n\n    public static void main(String[] args) {\n        int[][] intervals = {{1, 3}, {2, 6}, {8, 10}, {15, 18}};\n        int[][] res = mergeIntervals(intervals);\n        System.out.print(\"Merged Intervals: \");\n        for (int[] in : res) System.out.print(Arrays.toString(in) + \" \");\n        System.out.println();\n    }\n}",
+    "output": "Merged Intervals: [1, 6] [8, 10] [15, 18] ",
+    "id": 14
+  },
+  {
+    "category": "arrays",
+    "title": "Level 15: Hashing (Longest Consecutive Sequence, Happy Number, Intersection)",
+    "problemStatement": "Solve arrays with hashing: Longest Consecutive Sequence, Contains Duplicate, and Intersection of Arrays.",
+    "explanation": "Hashing allows checking values in O(1) time complexity. For Longest Consecutive Sequence, a HashSet stores all elements, enabling O(1) checks to identify sequence boundaries.",
+    "algorithm": "1. Longest Consecutive: Add all elements to HashSet. Loop elements. If element-1 is not in set, it is the start of a sequence. Increment value to check length of consecutive items.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(N) to store elements in Set",
+    "code": "import java.util.*;\n\npublic class HashProblems {\n    public static int longestConsecutive(int[] nums) {\n        Set<Integer> set = new HashSet<>();\n        for (int num : nums) set.add(num);\n        int max = 0;\n        for (int num : nums) {\n            if (!set.contains(num - 1)) { // Start of sequence\n                int current = num;\n                int currentStreak = 1;\n                while (set.contains(current + 1)) {\n                    current++;\n                    currentStreak++;\n                }\n                max = Math.max(max, currentStreak);\n            }\n        }\n        return max;\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {100, 4, 200, 1, 3, 2};\n        System.out.println(\"Longest Consecutive: \" + longestConsecutive(nums));\n    }\n}",
+    "output": "Longest Consecutive: 4",
+    "id": 15
+  },
+  {
+    "category": "arrays",
+    "title": "Level 16: Binary Search Pattern (Rotated Array, Peak Element, Book Allocation)",
+    "problemStatement": "Apply advanced binary search patterns: Search in Rotated Sorted Array, Find Peak Element, and Book Allocation problem (Minimize maximum pages).",
+    "explanation": "Binary search is not limited to matching exact keys. It can search 'hypothetical value bounds' (Binary Search on Answer) to find minimum capacities or allocate books in O(log(Sum - Max) * N) time.",
+    "algorithm": "1. Search Rotated: Find mid. Check which half is sorted. If left half is sorted, check if target falls inside it. Else, search right half.\n2. Book Allocation: Set low = max element, high = sum of all elements. Run binary search. For each mid, check if books can be allocated to M students. If yes, high=mid-1; else low=mid+1.",
+    "timeComplexity": "O(log N) for Rotated Array; O(N log(Sum)) for Book Allocation",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "public class AdvancedBinarySearch {\n    public static int searchRotated(int[] nums, int target) {\n        int low = 0, high = nums.length - 1;\n        while (low <= high) {\n            int mid = low + (high - low) / 2;\n            if (nums[mid] == target) return mid;\n            if (nums[low] <= nums[mid]) { // Left half sorted\n                if (target >= nums[low] && target < nums[mid]) high = mid - 1;\n                else low = mid + 1;\n            } else { // Right half sorted\n                if (target > nums[mid] && target <= nums[high]) low = mid + 1;\n                else high = mid - 1;\n            }\n        }\n        return -1;\n    }\n\n    public static int findPeakElement(int[] nums) {\n        int low = 0, high = nums.length - 1;\n        while (low < high) {\n            int mid = low + (high - low) / 2;\n            if (nums[mid] > nums[mid + 1]) high = mid; // Descending slope\n            else low = mid + 1; // Ascending slope\n        }\n        return low;\n    }\n\n    public static void main(String[] args) {\n        int[] rotated = {4, 5, 6, 7, 0, 1, 2};\n        int[] mountain = {1, 2, 3, 1};\n        System.out.println(\"Index of 0: \" + searchRotated(rotated, 0));\n        System.out.println(\"Peak index: \" + findPeakElement(mountain));\n    }\n}",
+    "output": "Index of 0: 4\nPeak index: 2",
+    "id": 16
+  },
+  {
+    "category": "arrays",
+    "title": "Level 17: Greedy Array Problems (Jump Game, Gas Station, Candy, Stock Buy/Sell)",
+    "problemStatement": "Solve greedy optimization challenges: Jump Game, Gas Station, Candy Distribution, and Best Time to Buy and Sell Stock (I-IV).",
+    "explanation": "Greedy algorithms make local optimal choices on each step, working towards global solutions. Jump Game checks if the maximum reachable index can span the entire array.",
+    "algorithm": "1. Jump Game: Maintain maxReach. Iterate array. If current index > maxReach, return false. Update maxReach = max(maxReach, index + arr[index]).\n2. Stock I: Track minPrice and maxProfit. Loop elements. If current < minPrice, update minPrice. Else if (current - minPrice) > maxProfit, update maxProfit.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "public class GreedyProblems {\n    public static boolean canJump(int[] nums) {\n        int maxReach = 0;\n        for (int i = 0; i < nums.length; i++) {\n            if (i > maxReach) return false;\n            maxReach = Math.max(maxReach, i + nums[i]);\n        }\n        return true;\n    }\n\n    public static int maxProfit(int[] prices) {\n        if (prices.length == 0) return 0;\n        int minPrice = prices[0], maxProfit = 0;\n        for (int i = 1; i < prices.length; i++) {\n            minPrice = Math.min(minPrice, prices[i]);\n            maxProfit = Math.max(maxProfit, prices[i] - minPrice);\n        }\n        return maxProfit;\n    }\n\n    public static void main(String[] args) {\n        int[] path = {2, 3, 1, 1, 4};\n        int[] prices = {7, 1, 5, 3, 6, 4};\n        System.out.println(\"Can Jump: \" + canJump(path));\n        System.out.println(\"Max Stock Profit: \" + maxProfit(prices));\n    }\n}",
+    "output": "Can Jump: true\nMax Stock Profit: 5",
+    "id": 17
+  },
+  {
+    "category": "arrays",
+    "title": "Level 18: Advanced Array (Next Greater Element, Monotonic Stack, Stock Span)",
+    "problemStatement": "Implement advanced array challenges using monotonic stacks: Next Greater Element, Stock Span, and Largest Rectangle in Histogram.",
+    "explanation": "A Monotonic Stack maintains elements in increasing or decreasing order. It resolves 'next elements' lookup challenges in O(N) by storing unresolved element indices, rather than re-scanning arrays in nested loops.",
+    "algorithm": "1. Next Greater: Maintain a stack. Loop from right-to-left. While stack is not empty and top <= current, pop(). If stack is empty, next greater is -1; else next greater is top. Push current to stack.",
+    "timeComplexity": "O(N) time complexity (each element pushed/popped at most once)",
+    "spaceComplexity": "O(N) for stack storage",
+    "code": "import java.util.*;\n\npublic class MonotonicStackProblems {\n    public static int[] nextGreaterElement(int[] nums) {\n        int[] res = new int[nums.length];\n        Stack<Integer> stack = new Stack<>();\n        for (int i = nums.length - 1; i >= 0; i--) {\n            while (!stack.isEmpty() && stack.peek() <= nums[i]) {\n                stack.pop();\n            }\n            res[i] = stack.isEmpty() ? -1 : stack.peek();\n            stack.push(nums[i]);\n        }\n        return res;\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {4, 5, 2, 25};\n        int[] g = nextGreaterElement(arr);\n        System.out.print(\"Next Greater Elements: \");\n        for (int x : g) System.out.print(x + \" \");\n        System.out.println();\n    }\n}",
+    "output": "Next Greater Elements: 5 25 25 -1 ",
+    "id": 18
+  },
+  {
+    "category": "arrays",
+    "title": "Level 19: XOR Problems (Single Number, Missing Number, XOR Range)",
+    "problemStatement": "Solve bitwise challenges: Single Number (find element appearing once where others appear twice), Missing Number, and XOR of Range.",
+    "explanation": "XOR operations satisfy: A ^ A = 0, and A ^ 0 = A. This allows checking arrays of duplicate numbers in O(N) time and O(1) space, since duplicates cancel each other out.",
+    "algorithm": "1. Single Number: XOR all elements together. The duplicate numbers cancel out, leaving the single element.\n2. Missing Number: XOR all indexes (0 to N) and all elements in the array. The returned value is the missing number.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "public class XorProblems {\n    public static int singleNumber(int[] nums) {\n        int xor = 0;\n        for (int num : nums) xor ^= num;\n        return xor;\n    }\n\n    public static int missingNumber(int[] nums) {\n        int xor = nums.length;\n        for (int i = 0; i < nums.length; i++) {\n            xor ^= i ^ nums[i];\n        }\n        return xor;\n    }\n\n    public static void main(String[] args) {\n        int[] arr1 = {4, 1, 2, 1, 2};\n        int[] arr2 = {3, 0, 1};\n        System.out.println(\"Single Number: \" + singleNumber(arr1));\n        System.out.println(\"Missing Number: \" + missingNumber(arr2));\n    }\n}",
+    "output": "Single Number: 4\nMissing Number: 2",
+    "id": 19
+  },
+  {
+    "category": "arrays",
+    "title": "Level 20: Cyclic Sort Pattern (Missing Number, Find Duplicate, First Positive)",
+    "problemStatement": "Implement Cyclic Sort: sort array in O(N) time and O(1) space, locate missing numbers, find duplicates, and first missing positive.",
+    "explanation": "Cyclic sort is used when elements are in the range [1 to N] or [0 to N]. Since elements belong to specific indexes (val maps to index val-1), we swap elements to their correct index locations sequentially.",
+    "algorithm": "1. Cyclic Sort: Iterate index i. Calculate correctIndex = arr[i] - 1. If arr[i] != arr[correctIndex], swap elements; else increment i.",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space",
+    "code": "public class CyclicSortPattern {\n    public static void cyclicSort(int[] arr) {\n        int i = 0;\n        while (i < arr.length) {\n            int correctIndex = arr[i] - 1;\n            if (arr[i] > 0 && arr[i] <= arr.length && arr[i] != arr[correctIndex]) {\n                swap(arr, i, correctIndex);\n            } else {\n                i++;\n            }\n        }\n    }\n\n    private static void swap(int[] arr, int i, int j) {\n        int temp = arr[i];\n        arr[i] = arr[j];\n        arr[j] = temp;\n    }\n\n    public static int findDuplicate(int[] arr) {\n        cyclicSort(arr);\n        for (int i = 0; i < arr.length; i++) {\n            if (arr[i] != i + 1) return arr[i];\n        }\n        return -1;\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {3, 1, 3, 4, 2};\n        System.out.println(\"Duplicate Found: \" + findDuplicate(arr));\n    }\n}",
+    "output": "Duplicate Found: 3",
+    "id": 20
+  },
+  {
+    "category": "arrays",
+    "title": "Level 21: Heap + Arrays (K Largest, K Closest, Merge K Sorted Arrays)",
+    "problemStatement": "Solve Heap-based array problems: find K largest/smallest elements, K closest numbers, and merge K sorted arrays.",
+    "explanation": "Heaps (Priority Queues) optimize tracking of extreme values. Merging K sorted arrays uses a Min-Heap containing array head pointers to achieve O(N log K) merging time.",
+    "algorithm": "1. Merge K Arrays: Create a min-heap containing QueueNode elements storing (value, arrayIndex, elementIndex). Pop the minimum element, write to results, and insert the next element from the same array into the heap.",
+    "timeComplexity": "O(N log K) for Merge K Sorted Arrays (where N is total elements)",
+    "spaceComplexity": "O(K) auxiliary space for Min-Heap",
+    "code": "import java.util.*;\n\npublic class HeapArrayProblems {\n    static class QueueNode implements Comparable<QueueNode> {\n        int value, arrayIndex, elementIndex;\n        QueueNode(int value, int arrIdx, int elIdx) {\n            this.value = value;\n            this.arrayIndex = arrIdx;\n            this.elementIndex = elIdx;\n        }\n        public int compareTo(QueueNode other) {\n            return Integer.compare(this.value, other.value);\n        }\n    }\n\n    public static List<Integer> mergeKSortedArrays(int[][] arrays) {\n        List<Integer> res = new ArrayList<>();\n        PriorityQueue<QueueNode> minHeap = new PriorityQueue<>();\n        for (int i = 0; i < arrays.length; i++) {\n            if (arrays[i].length > 0) {\n                minHeap.add(new QueueNode(arrays[i][0], i, 0));\n            }\n        }\n        while (!minHeap.isEmpty()) {\n            QueueNode curr = minHeap.poll();\n            res.add(curr.value);\n            if (curr.elementIndex + 1 < arrays[curr.arrayIndex].length) {\n                minHeap.add(new QueueNode(\n                    arrays[curr.arrayIndex][curr.elementIndex + 1],\n                    curr.arrayIndex,\n                    curr.elementIndex + 1\n                ));\n            }\n        }\n        return res;\n    }\n\n    public static void main(String[] args) {\n        int[][] arrays = {{1, 4, 7}, {2, 5, 8}, {3, 6, 9}};\n        System.out.println(\"Merged K Arrays: \" + mergeKSortedArrays(arrays));\n    }\n}",
+    "output": "Merged K Arrays: [1, 2, 3, 4, 5, 6, 7, 8, 9]",
+    "id": 21
+  },
+  {
+    "category": "arrays",
+    "title": "Level 22: Dynamic Programming (House Robber, LIS, Coin Change)",
+    "problemStatement": "Solve dynamic programming array challenges: House Robber, Longest Increasing Subsequence (LIS), and Coin Change.",
+    "explanation": "Dynamic Programming partitions problems into overlapping subproblems, caching results to prevent duplicate calls. House Robber tracks max profit at index i using values at i-1 and i-2.",
+    "algorithm": "1. House Robber: Track rob1 (i-2) and rob2 (i-1). For each element, nextRob = max(current + rob1, rob2). Update rob1=rob2, rob2=nextRob.\n2. LIS: Maintain array dp where dp[i] is the length of LIS ending at index i. dp[i] = 1 + max(dp[j]) for all j < i where arr[j] < arr[i].",
+    "timeComplexity": "O(N) for House Robber; O(N^2) for LIS (can be optimized to O(N log N) using binary search)",
+    "spaceComplexity": "O(1) for House Robber; O(N) for LIS",
+    "code": "import java.util.Arrays;\n\npublic class DynamicProgrammingArrays {\n    public static int rob(int[] nums) {\n        int rob1 = 0, rob2 = 0;\n        for (int num : nums) {\n            int temp = Math.max(num + rob1, rob2);\n            rob1 = rob2;\n            rob2 = temp;\n        }\n        return rob2;\n    }\n\n    public static int lengthOfLIS(int[] nums) {\n        if (nums.length == 0) return 0;\n        int[] dp = new int[nums.length];\n        Arrays.fill(dp, 1);\n        int max = 1;\n        for (int i = 1; i < nums.length; i++) {\n            for (int j = 0; j < i; j++) {\n                if (nums[i] > nums[j]) {\n                    dp[i] = Math.max(dp[i], dp[j] + 1);\n                }\n            }\n            max = Math.max(max, dp[i]);\n        }\n        return max;\n    }\n\n    public static void main(String[] args) {\n        int[] houses = {2, 7, 9, 3, 1};\n        int[] seq = {10, 9, 2, 5, 3, 7, 101, 18};\n        System.out.println(\"Max Robbed: \" + rob(houses));\n        System.out.println(\"LIS Length: \" + lengthOfLIS(seq));\n    }\n}",
+    "output": "Max Robbed: 12\nLIS Length: 4",
+    "id": 22
+  },
+  {
+    "category": "arrays",
+    "title": "Level 23: Hard Array Problems (Median of Sorted, Sliding Window Max)",
+    "problemStatement": "Solve complex array interview problems: Median of Two Sorted Arrays (O(log(min(M,N)))), and Sliding Window Maximum.",
+    "explanation": "Sliding Window Maximum is solved in O(N) using a Deque to store indexes of elements in decreasing order, purging out-of-bounds indices. Median of Two Sorted Arrays is solved using binary search partitioning.",
+    "algorithm": "1. Sliding Window Max: Iterate elements. Maintain Deque of index coordinates. Pop indexes from tail if values at tail <= current. Add current index to tail. Pop head if index is out-of-bounds. Write head value to results once index >= K-1.",
+    "timeComplexity": "O(N) for Sliding Window Max; O(log(min(M,N))) for Median of Sorted Arrays",
+    "spaceComplexity": "O(K) for Deque; O(1) for Median partition checks",
+    "code": "import java.util.*;\n\npublic class HardArrayProblems {\n    public static int[] maxSlidingWindow(int[] nums, int k) {\n        if (nums.length == 0 || k == 0) return new int[0];\n        int n = nums.length;\n        int[] r = new int[n - k + 1];\n        int ri = 0;\n        Deque<Integer> q = new ArrayDeque<>();\n        for (int i = 0; i < n; i++) {\n            // Remove out-of-bounds index\n            if (!q.isEmpty() && q.peek() < i - k + 1) {\n                q.poll();\n            }\n            // Remove smaller values\n            while (!q.isEmpty() && nums[q.peekLast()] < nums[i]) {\n                q.pollLast();\n            }\n            q.offer(i);\n            if (i >= k - 1) {\n                r[ri++] = nums[q.peek()];\n            }\n        }\n        return r;\n    }\n\n    public static void main(String[] args) {\n        int[] arr = {1, 3, -1, -3, 5, 3, 6, 7};\n        int[] res = maxSlidingWindow(arr, 3);\n        System.out.print(\"Sliding Window Maximums: \");\n        for (int x : res) System.out.print(x + \" \");\n        System.out.println();\n    }\n}",
+    "output": "Sliding Window Maximums: 3 3 5 5 6 7 ",
+    "id": 23
+  },
+  {
+    "category": "arrays",
+    "title": "Level 24: FAANG Interview Classics (Product Except Self, Spiral Matrix, Container)",
+    "problemStatement": "Solve classic FAANG array interview questions: Product of Array Except Self (without division), Rotate Image, and Container with Most Water.",
+    "explanation": "Product of Array Except Self is solved in O(N) time and O(1) space (excluding output array) by calculating prefix products in a forward pass, and multiplying suffix products in a backward pass.",
+    "algorithm": "1. Product Except Self: Allocate output array. Set prefix=1. Iterate index i: output[i] = prefix, prefix *= arr[i]. Set suffix=1. Iterate backward: output[i] *= suffix, suffix *= arr[i].",
+    "timeComplexity": "O(N) time complexity",
+    "spaceComplexity": "O(1) auxiliary space (excluding output array)",
+    "code": "import java.util.Arrays;\n\npublic class FaangClassics {\n    public static int[] productExceptSelf(int[] nums) {\n        int n = nums.length;\n        int[] res = new int[n];\n        res[0] = 1;\n        for (int i = 1; i < n; i++) {\n            res[i] = res[i - 1] * nums[i - 1]; // Prefix product\n        }\n        int right = 1;\n        for (int i = n - 1; i >= 0; i--) {\n            res[i] *= right; // Suffix product\n            right *= nums[i];\n        }\n        return res;\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {1, 2, 3, 4};\n        int[] result = productExceptSelf(nums);\n        System.out.println(\"Product except self: \" + Arrays.toString(result));\n    }\n}",
+    "output": "Product except self: [24, 12, 8, 6]",
+    "id": 24
+  },
+  {
+    "id": 25,
     "category": "strings",
     "title": "Reverse a String in Java",
     "problemStatement": "Write a Java program to reverse a given string without using any built-in reverse functions.",
@@ -12,19 +300,7 @@
     "output": "Original: JavaMaster\nReversed: retsaMavaJ"
   },
   {
-    "id": 2,
-    "category": "arrays",
-    "title": "Two Sum Challenge",
-    "problemStatement": "Given an array of integers 'nums' and an integer 'target', return indices of the two numbers such that they add up to target.",
-    "explanation": "You can solve this efficiently in one pass using a HashMap. For each number, calculate its complement (target - current_value). If the complement is already in the map, return the current index and the complement's index. Otherwise, store the current value and index in the map.",
-    "algorithm": "1. Create a HashMap of <Integer, Integer> to store values and their indices.\n2. Iterate through the array with pointer 'i'.\n3. Calculate complement = target - nums[i].\n4. If map containsKey(complement), return new int[]{ map.get(complement), i }.\n5. Else, put(nums[i], i) into the map.\n6. If loop completes, return empty array.",
-    "timeComplexity": "O(N)",
-    "spaceComplexity": "O(N) for storing elements in HashMap",
-    "code": "import java.util.HashMap;\nimport java.util.Arrays;\n\npublic class TwoSum {\n    public static int[] findTwoSum(int[] nums, int target) {\n        HashMap<Integer, Integer> map = new HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            int complement = target - nums[i];\n            if (map.containsKey(complement)) {\n                return new int[] { map.get(complement), i };\n            }\n            map.put(nums[i], i);\n        }\n        return new int[] {}; // No solution found\n    }\n\n    public static void main(String[] args) {\n        int[] numbers = {2, 7, 11, 15};\n        int target = 9;\n        int[] result = findTwoSum(numbers, target);\n        System.out.println(\"Indices: \" + Arrays.toString(result));\n    }\n}",
-    "output": "Indices: [0, 1]"
-  },
-  {
-    "id": 3,
+    "id": 26,
     "category": "recursion",
     "title": "N-th Fibonacci Number (Recursive and Memoized)",
     "problemStatement": "Calculate the N-th Fibonacci number using recursion, and optimize it using memoization.",
@@ -36,7 +312,7 @@
     "output": "Fibonacci of 10 is: 55"
   },
   {
-    "id": 4,
+    "id": 27,
     "category": "sorting_searching",
     "title": "Binary Search Algorithm",
     "problemStatement": "Implement Binary Search on a sorted array of integers to locate a target element.",
@@ -48,7 +324,7 @@
     "output": "Element 23 found at index: 5"
   },
   {
-    "id": 5,
+    "id": 28,
     "category": "data_structures",
     "title": "Detect Loop in a Linked List",
     "problemStatement": "Implement Floyd's Cycle Finding algorithm to detect a loop (cycle) in a Singly Linked List.",
@@ -69,7 +345,7 @@
     "spaceComplexity": "O(1) auxiliary space",
     "code": "public class NumberReversal {\n    public static int reverse(int num) {\n        int rev = 0;\n        while (num > 0) {\n            int rem = num % 10;\n            rev = (rev * 10) + rem;\n            num /= 10;\n        }\n        return rev;\n    }\n\n    public static void main(String[] args) {\n        int number = 12345;\n        int reversed = reverse(number);\n        System.out.println(\"Original: \" + number);\n        System.out.println(\"Reversed: \" + reversed);\n    }\n}",
     "output": "Original: 12345\nReversed: 54321",
-    "id": 6
+    "id": 29
   },
   {
     "category": "numbers",
@@ -81,7 +357,7 @@
     "spaceComplexity": "O(1)",
     "code": "public class PalindromeNumber {\n    public static boolean isPalindrome(int num) {\n        int temp = num;\n        int rev = 0;\n        while (num > 0) {\n            int rem = num % 10;\n            rev = (rev * 10) + rem;\n            num /= 10;\n        }\n        return temp == rev;\n    }\n\n    public static void main(String[] args) {\n        int val = 121;\n        System.out.println(val + \" is Palindrome: \" + isPalindrome(val));\n    }\n}",
     "output": "121 is Palindrome: true",
-    "id": 7
+    "id": 30
   },
   {
     "category": "numbers",
@@ -93,7 +369,7 @@
     "spaceComplexity": "O(1)",
     "code": "public class ArmstrongNumber {\n    public static boolean isArmstrong(int num) {\n        int temp = num;\n        int sum = 0;\n        while (num > 0) {\n            int rem = num % 10;\n            sum += (rem * rem * rem);\n            num /= 10;\n        }\n        return temp == sum;\n    }\n\n    public static void main(String[] args) {\n        int val = 153;\n        System.out.println(val + \" is Armstrong: \" + isArmstrong(val));\n    }\n}",
     "output": "153 is Armstrong: true",
-    "id": 8
+    "id": 31
   },
   {
     "category": "numbers",
@@ -105,7 +381,7 @@
     "spaceComplexity": "O(1)",
     "code": "public class PrimeChecker {\n    public static boolean isPrime(int num) {\n        if (num <= 1) return false;\n        for (int i = 2; i * i <= num; i++) {\n            if (num % i == 0) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    public static void main(String[] args) {\n        int val = 13;\n        System.out.println(val + \" is Prime: \" + isPrime(val));\n    }\n}",
     "output": "13 is Prime: true",
-    "id": 9
+    "id": 32
   },
   {
     "category": "numbers",
@@ -117,43 +393,7 @@
     "spaceComplexity": "O(1)",
     "code": "public class SwapNumbers {\n    public static void main(String[] args) {\n        int a = 10;\n        int b = 20;\n        System.out.println(\"Before Swap - a: \" + a + \", b: \" + b);\n        \n        a = a + b; // a becomes 30\n        b = a - b; // b becomes 10\n        a = a - b; // a becomes 20\n        \n        System.out.println(\"After Swap - a: \" + a + \", b: \" + b);\n    }\n}",
     "output": "Before Swap - a: 10, b: 20\nAfter Swap - a: 20, b: 10",
-    "id": 10
-  },
-  {
-    "category": "arrays",
-    "title": "Find Greatest Element in Array",
-    "problemStatement": "Locate the maximum value inside a given integer array.",
-    "explanation": "Initialize a variable 'max' with the first element of the array. Iterate through the rest of the array elements. For each element, if it is greater than 'max', update 'max' with this element's value.",
-    "algorithm": "1. Initialize max = arr[0].\n2. Loop from i = 1 to arr.length - 1:\n   a. If arr[i] > max, set max = arr[i].\n3. Return max.",
-    "timeComplexity": "O(N)",
-    "spaceComplexity": "O(1)",
-    "code": "public class MaxInArray {\n    public static int findMax(int[] arr) {\n        int max = arr[0];\n        for (int i = 1; i < arr.length; i++) {\n            if (arr[i] > max) {\n                max = arr[i];\n            }\n        }\n        return max;\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {25, 945, 326, 8, 90};\n        System.out.println(\"Maximum element: \" + findMax(nums));\n    }\n}",
-    "output": "Maximum element: 945",
-    "id": 11
-  },
-  {
-    "category": "arrays",
-    "title": "Find Missing Number in Array",
-    "problemStatement": "Find the single missing number in an array containing distinct integers in the range 1 to N.",
-    "explanation": "Calculate the sum of all numbers from 1 to N using the arithmetic formula N*(N+1)/2. Then calculate the actual sum of elements present in the array. The difference between the expected formula sum and the actual array elements sum is the missing number.",
-    "algorithm": "1. Calculate N = array length + 1.\n2. Calculate expected_sum = N * (N + 1) / 2.\n3. Calculate actual_sum by summing all array elements.\n4. Return expected_sum - actual_sum.",
-    "timeComplexity": "O(N)",
-    "spaceComplexity": "O(1)",
-    "code": "public class MissingNumber {\n    public static int findMissing(int[] arr, int n) {\n        int expectedSum = n * (n + 1) / 2;\n        int actualSum = 0;\n        for (int num : arr) {\n            actualSum += num;\n        }\n        return expectedSum - actualSum;\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {1, 2, 4, 5, 6}; // 3 is missing, N = 6\n        System.out.println(\"Missing Number: \" + findMissing(nums, 6));\n    }\n}",
-    "output": "Missing Number: 3",
-    "id": 12
-  },
-  {
-    "category": "arrays",
-    "title": "Reverse Array in Place",
-    "problemStatement": "Reverse the order of elements in an integer array in place (without allocating extra array memory).",
-    "explanation": "Use a two-pointer approach. Place one pointer 'start' at index 0 and another 'end' at index length-1. Swap elements at these two pointers, then increment 'start' and decrement 'end' until they meet in the middle.",
-    "algorithm": "1. Initialize start = 0, end = arr.length - 1.\n2. While start < end:\n   a. Swap arr[start] and arr[end].\n   b. start++, end--.",
-    "timeComplexity": "O(N)",
-    "spaceComplexity": "O(1)",
-    "code": "import java.util.Arrays;\n\npublic class ReverseArray {\n    public static void reverse(int[] arr) {\n        int start = 0;\n        int end = arr.length - 1;\n        while (start < end) {\n            int temp = arr[start];\n            arr[start] = arr[end];\n            arr[end] = temp;\n            start++;\n            end--;\n        }\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {10, 20, 30, 40, 50};\n        reverse(nums);\n        System.out.println(\"Reversed: \" + Arrays.toString(nums));\n    }\n}",
-    "output": "Reversed: [50, 40, 30, 20, 10]",
-    "id": 13
+    "id": 33
   },
   {
     "category": "sorting_searching",
@@ -165,6 +405,6 @@
     "spaceComplexity": "O(1)",
     "code": "import java.util.Arrays;\n\npublic class BubbleSort {\n    public static void sort(int[] arr) {\n        int n = arr.length;\n        for (int i = 0; i < n - 1; i++) {\n            for (int j = 0; j < n - i - 1; j++) {\n                if (arr[j] > arr[j + 1]) {\n                    int temp = arr[j];\n                    arr[j] = arr[j + 1];\n                    arr[j + 1] = temp;\n                }\n            }\n        }\n    }\n\n    public static void main(String[] args) {\n        int[] nums = {22, 5, 6, 88, 9};\n        sort(nums);\n        System.out.println(\"Sorted: \" + Arrays.toString(nums));\n    }\n}",
     "output": "Sorted: [5, 6, 9, 22, 88]",
-    "id": 14
+    "id": 34
   }
 ]
