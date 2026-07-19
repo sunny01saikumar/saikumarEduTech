@@ -1264,11 +1264,331 @@
     "id": 158
   },
   {
-    "id": 159,
     "category": "microservices",
-    "title": "Microservices Architecture & REST API",
-    "description": "Microservices decompose monolithic programs into bounded context services with independent databases. Distributed communication employs REST HTTP endpoints or Kafka events coordinated via API Gateways, Service Discovery registries, and Saga eventual consistency workflows.",
-    "examples": "### 1. Monolith vs. Microservices Architecture\n*   **Monolithic Architecture**: Everything exists inside a single large deployable code application sharing one database. Simple to start, but hard to scale, deploy, or divide among large development teams.\n*   **Microservices Architecture**: Breaks down an application into independent, loosely coupled, and business-focused services. Each service owns its code, deployment pipeline, and database (Database-per-Service pattern).\n\n```mermaid\ngraph TD\n    Client[\"Client / Browser\"] --> Gateway[\"API Gateway\"]\n    Gateway --> UserService[\"User Service\"]\n    Gateway --> ProductService[\"Product Service\"]\n    Gateway --> OrderService[\"Order Service\"]\n    \n    UserService --> UserDB[(\"User DB\")]\n    ProductService --> ProductDB[(\"Product DB\")]\n    OrderService --> OrderDB[(\"Order DB\")]\n```\n\n---\n\n### 2. Service Communication\nServices communicate in two primary ways:\n1. **Synchronous**: REST (HTTP/JSON) or gRPC. The calling service waits for an immediate response.\n2. **Asynchronous (Event-Driven)**: Kafka or RabbitMQ messaging. Services emit events (e.g. `OrderCreated`) and consumer services react independently. This decouples services and handles spikes gracefully.\n\n---\n\n### 3. REST API Design & Statelessness\nREST (Representational State Transfer) is an architectural style utilizing HTTP:\n*   **Resources**: Identified by plural nouns in URIs (e.g., `/api/v1/employees/10`), not actions (avoid `/getEmployee`).\n*   **HTTP Methods**: GET (read), POST (create), PUT (replace), PATCH (partial update), DELETE (delete).\n*   **Statelessness**: The server retains no client session context between requests. Each request must contain all required information (like a JWT auth token), enabling instant horizontal scaling across multiple servers.\n\n```java\n// Spring Boot REST controller mapping resources to HTTP operations\n@RestController\n@RequestMapping(\"/api/v1/employees\")\npublic class EmployeeController {\n    private final EmployeeService service;\n\n    public EmployeeService(EmployeeService service) {\n        this.service = service;\n    }\n\n    @GetMapping(\"/{id}\")\n    public ResponseEntity<Employee> getEmployee(@PathVariable Long id) {\n        return ResponseEntity.ok(service.findById(id));\n    }\n}\n```\n\n---\n\n### 4. Distributed Resiliency & Patterns\n*   **API Gateway**: Acts as the single entry point. Handles cross-cutting concerns: routing, authentication (JWT/OAuth2), rate limiting, and SSL termination.\n*   **Service Discovery (Eureka/Consul)**: A dynamic registry tracking service instances.\n*   **Circuit Breaker (Resilience4j)**: Detects downstream service failures. Breaks the loop to return quick fallbacks, preventing cascading thread starvation.\n*   **Saga Pattern**: Manages distributed transactions across different service databases through a sequence of local transactions and **compensating transactions** to revert steps if a failure occurs (eventual consistency).\n*   **Idempotency**: Ensuring the same request (e.g., a payment request with a unique idempotency key) can be executed multiple times safely without duplicate operations.\n\n---\n\n### 5. Observability (Logs, Metrics, Traces)\nIn a distributed system, a single user request can trace across multiple microservices. Observability is essential to determine failure locations:\n*   **Logging**: Centralized aggregation (ELK Stack / OpenSearch).\n*   **Metrics**: Infrastructure and application health indicators (Prometheus & Grafana).\n*   **Distributed Tracing**: Tracing requests across service boundaries using correlation IDs (OpenTelemetry, Jaeger, Zipkin).",
-    "summary": "Understand Monolith vs Microservices, Synchronous REST vs Asynchronous Event-driven pipelines, Stateless design, API Gateways, Circuit Breakers, Saga patterns, and Observability tracing tools."
+    "title": "Module 1: System Architecture",
+    "description": "Understanding system architecture paradigms: Monoliths, Layered, N-Tier, SOA, Microservices, Event-Driven, and Serverless.",
+    "examples": "### 1. Monolithic Architecture\nA single, unified software unit where user interface code, business logic, and database access are packaged together in one executable. Easy to build, deploy, and test initially.\n*   *Downside*: Scales poorly. A failure in one component (e.g. out of memory) crashes the entire application.\n\n---\n\n### 2. Layered vs. N-Tier Architecture\n*   **Layered (Logical)**: Code is organized into logical layers (Presentation, Business, Data Access) inside a single deployment unit.\n*   **N-Tier (Physical)**: Layers are separated into physically distinct execution tiers running on different servers (e.g., Client PC -> Web Server -> Application Server -> Database Server).\n\n---\n\n### 3. Service-Oriented Architecture (SOA)\nAn enterprise architecture where distinct applications share services using a centralized middleware service bus (ESB - Enterprise Service Bus) over SOAP protocols. Highly complex and heavy.\n\n---\n\n### 4. Event-Driven Architecture (EDA)\nDecouples services by using asynchronous messages (events) sent via a message broker (e.g. Kafka). Services react to events instead of calling each other directly.\n\n---\n\n### 5. Serverless (Function-as-a-Service)\nApplications run inside ephemeral, stateless cloud containers triggered by events (e.g., AWS Lambda). Scaled automatically by the cloud provider, charging only for raw execution time.",
+    "summary": "Software architectures range from unified Monoliths and SOA to modern loose-coupled Microservices, Event-Driven streams, and serverless Cloud functions.",
+    "id": 159
+  },
+  {
+    "category": "microservices",
+    "title": "Module 2: Monolith vs. Microservices",
+    "description": "Comparing characteristics, advantages, disadvantages, migration patterns, and Conway's Law.",
+    "examples": "### 1. Monolith vs. Microservices Comparison\n| Feature | Monolith | Microservices |\n| :--- | :--- | :--- |\n| **Codebase** | Single codebase. | Separate codebases per service. |\n| **Database** | Shared database. | Database-per-service (decoupled). |\n| **Scaling** | Scale entire application. | Scale specific service instances. |\n| **Fault Isolation** | Poor (single crash downs all). | Strong (a service crash is isolated). |\n| **Deployment** | Slow, coordinated releases. | Independent deployments. |\n\n---\n\n### 2. Migration: Strangler Fig Pattern\nThe Strangler Fig Pattern migrating a monolith to microservices incrementally:\n1.  Add new features as standalone microservices next to the monolith.\n2.  Route traffic to the new microservice using an API Gateway routing rule.\n3.  Incrementally extract monolith modules into microservices until the monolith is replaced entirely.\n\n---\n\n### 3. Conway's Law\n\"Organizations which design systems are constrained to produce designs which are copies of the communication structures of these organizations.\"\n*   *Application*: If team structures are isolated silos, application modules will be monolithic. Align teams around cross-functional business capabilities to build clean microservices.",
+    "summary": "Monoliths are single units; Microservices are decoupled systems. Migrate using the Strangler Fig pattern. Conway's Law dictates that team structure influences system design.",
+    "id": 160
+  },
+  {
+    "category": "microservices",
+    "title": "Module 3: Domain Driven Design (DDD)",
+    "description": "DDD principles: Bounded Contexts, Ubiquitous Language, Aggregates, Entities, and Value Objects.",
+    "examples": "### 1. Domain & Bounded Contexts\n*   **Domain**: The overall business space (e.g., E-Commerce).\n*   **Subdomain**: A specific area of the domain (e.g., Inventory, Billing).\n*   **Bounded Context**: The boundary within which a domain model applies. Inside a bounded context, all terms have a single, unambiguous meaning.\n*   **Ubiquitous Language**: A shared, common language defined and used by both software developers and business domain experts to prevent communication errors.\n\n---\n\n### 2. DDD Building Blocks\n*   **Entity**: An object defined by its unique identity, rather than its attributes (e.g., a `User` with an ID).\n*   **Value Object**: An immutable object defined entirely by its attributes, containing no identity (e.g. an `Address` object with street, city, zip).\n*   **Aggregate**: A cluster of domain objects (Entities and Value Objects) treated as a single transaction unit.\n*   **Aggregate Root**: The parent entity in an aggregate. External objects can only reference the Aggregate Root, ensuring transaction consistency.\n*   **Repository**: Abstraction layer used to retrieve and save aggregate roots to database storage.",
+    "summary": "DDD structures microservices around business subdomains. Bounded contexts define model scopes. Aggregates enforce data consistency rules via Aggregate Roots.",
+    "id": 161
+  },
+  {
+    "category": "microservices",
+    "title": "Module 4: Microservices Basics",
+    "description": "Key characteristics of microservices: loose coupling, independent deployments, fault isolation, and database-per-service.",
+    "examples": "### 1. Microservice Characteristics\nA microservice is a small, autonomous service implementing a single business capability.\n*   **Loose Coupling**: Services are independent. Modifying one service should not require changes to other services.\n*   **High Cohesion**: A service should contain all the code for its single domain boundary.\n*   **Independent Deployment**: Services can be compiled, tested, and deployed to production individually without coordinating with other teams.\n*   **Fault Isolation**: If the Billing service crashes, the Catalog search service should continue running unaffected.\n*   **Database-per-service**: Each service owns and controls its database. Direct cross-database joins are prohibited; services communicate only via APIs.\n\n---\n\n### 2. Stateless Services\nA microservice should not store client sessions or transaction states in local memory:\n*   *Benefit*: Stateless services can scale horizontally. Load balancers can route client requests to any instance of the service dynamically.",
+    "summary": "Microservices are autonomous, loosely coupled services aligned to business domains. They own their databases and run statelessly to enable horizontal scaling.",
+    "id": 162
+  },
+  {
+    "category": "microservices",
+    "title": "Module 5: Designing Microservices",
+    "description": "Defining service boundaries, single responsibility principles, and avoiding anti-patterns like shared databases.",
+    "examples": "### 1. Defining Service Boundaries\n*   **Single Responsibility**: A microservice should focus on a single business capability (e.g. User management, Inventory checks).\n*   **Service Granularity**: Avoid building \"nano-services\" (too small, causing excessive network latency) or \"distributed monoliths\" (services that depend on each other and must be deployed together).\n\n---\n\n### 2. Why Avoid a Shared Database?\nSharing a database across microservices is a major anti-pattern:\n*   *Tight Coupling*: Modifying a table schema in the shared database can break multiple services.\n*   *Data Contention*: Services compete for database locks, causing performance bottlenecks.\n*   *Violates Autonomy*: Teams cannot deploy services independently if they depend on a shared database schema.\n\n---\n\n### 3. Shared Kernel & Libraries\nInstead of sharing database tables, share common helper code (like utility functions or serialization libraries) using artifact repositories (e.g. Maven Central, Nexus) as immutable shared libraries.",
+    "summary": "Design service boundaries around single business capabilities. Avoid shared database schemas to maintain service independence and prevent tight coupling.",
+    "id": 163
+  },
+  {
+    "category": "microservices",
+    "title": "Module 6: REST Basics",
+    "description": "REpresentational State Transfer (REST) architectural constraints: statelessness, uniform interfaces, and cacheability.",
+    "examples": "### 1. What is REST?\nREpresentational State Transfer (REST) is an architectural style designed for distributed hypermedia systems, commonly implemented using HTTP.\n\n---\n\n### 2. The 6 REST Constraints\nTo be considered RESTful, an API must adhere to six architectural constraints:\n1.  **Client-Server**: Separates client interfaces from server-side data storage, allowing them to evolve independently.\n2.  **Statelessness**: Every client request must contain all the information required to process it. The server stores no client session context.\n3.  **Cacheability**: Server responses must define themselves as cacheable or non-cacheable to improve network performance.\n4.  **Uniform Interface**: Simplifies routing using standardized URIs, HTTP methods, and representation formats (like JSON).\n5.  **Layered System**: Clients cannot determine if they are connected directly to the end server or to an intermediate gateway or load balancer.\n6.  **Code on Demand (Optional)**: Servers can extend client functionality by sending executable code (e.g. JavaScript scripts).",
+    "summary": "REST is an architectural style based on HTTP. Its key constraints include statelessness, client-server separation, uniform interfaces, and cacheability.",
+    "id": 164
+  },
+  {
+    "category": "microservices",
+    "title": "Module 7: HTTP Protocol",
+    "description": "HTTP request-response structures, URI/URL components, headers, body variables, and parameters.",
+    "examples": "### 1. HTTP Request-Response Layout\n*   **HTTP Request**:\n    *   *Request Line*: Method type (`GET`), target Path (`/api/users`), and Protocol version (`HTTP/1.1`).\n    *   *Headers*: Metadata (e.g. `Accept: application/json`, `Authorization`).\n    *   *Body*: Payload containing resources (e.g. JSON strings).\n*   **HTTP Response**:\n    *   *Status Line*: Protocol version, Status Code (`200 OK`).\n    *   *Headers*: Metadata (e.g. `Content-Type: application/json`).\n    *   *Body*: Returned resource data.\n\n---\n\n### 2. URI vs. URL\n*   **URI (Uniform Resource Identifier)**: A generic name or address that identifies a resource.\n*   **URL (Uniform Resource Locator)**: A specific type of URI that defines *how* to access the resource (by specifying the protocol, e.g. `https://example.com/index.html`).\n\n---\n\n### 3. Parameters\n*   **Query Parameters**: Appended to URLs for filtering: `/users?role=admin`.\n*   **Path Variables**: Embed variables inside paths: `/users/{id}`.",
+    "summary": "HTTP requests and responses contain status lines, metadata headers, and payloads. Path variables identify specific resources; query parameters filter them.",
+    "id": 165
+  },
+  {
+    "category": "microservices",
+    "title": "Module 8: HTTP Methods",
+    "description": "HTTP action verbs: GET, POST, PUT, PATCH, DELETE, OPTIONS, and HEAD.",
+    "examples": "### 1. HTTP Methods & REST Mappings\nHTTP defines standard methods to perform actions on resources:\n*   **GET**: Retrieves a resource. Must be safe and idempotent.\n*   **POST**: Creates a new resource. Is neither safe nor idempotent.\n*   **PUT**: Replaces an existing resource entirely. If the resource does not exist, it can create it. Must be idempotent.\n*   **PATCH**: Applies partial updates to a resource (modifying only specific fields). Must be idempotent.\n*   **DELETE**: Deletes a resource. Must be idempotent.\n*   **OPTIONS**: Returns supported HTTP methods for the target URL. Used in CORS preflight checks.\n*   **HEAD**: Identical to GET but returns only the response headers, omitting the response body. Useful for checking resource existence or file sizes.\n\n---\n\n### 2. Safe and Idempotent Methods Cheat Sheet\n| Method | Safe (No side-effects) | Idempotent (Multiple calls yield same result) |\n| :--- | :--- | :--- |\n| **GET** | Yes | Yes |\n| **POST** | No | No |\n| **PUT** | No | Yes |\n| **PATCH** | No | Yes |\n| **DELETE** | No | Yes |",
+    "summary": "GET retrieves data. POST creates resources. PUT replaces resources. PATCH applies partial updates. DELETE removes resources. OPTIONS checks server capabilities.",
+    "id": 166
+  },
+  {
+    "category": "microservices",
+    "title": "Module 9: HTTP Status Codes",
+    "description": "Understanding HTTP status categories: 1xx, 2xx, 3xx, 4xx, and 5xx, and key response codes.",
+    "examples": "### 1. HTTP Status Code Categories\n*   **1xx (Informational)**: Request received, continuing process.\n*   **2xx (Success)**: Request successfully received, understood, and accepted.\n*   **3xx (Redirection)**: Further action needs to be taken to complete the request.\n*   **4xx (Client Error)**: The request contains bad syntax or cannot be fulfilled.\n*   **5xx (Server Error)**: The server failed to fulfill an apparently valid request.\n\n---\n\n### 2. Essential REST Status Codes\n*   **200 OK**: Request completed successfully.\n*   **201 Created**: Resource created successfully (commonly returned by POST requests).\n*   **202 Accepted**: Request accepted for processing, but processing is not complete yet.\n*   **204 No Content**: Request completed successfully, but returns no response body (commonly returned by DELETE requests).\n*   **304 Not Modified**: Resource has not changed; client can use its cached version.\n*   **400 Bad Request**: Invalid client input (e.g. validation errors).\n*   **401 Unauthorized**: Client needs to authenticate (invalid credentials).\n*   **403 Forbidden**: Client is authenticated but lacks permissions to access the resource.\n*   **404 Not Found**: Resource cannot be located.\n*   **409 Conflict**: Request conflicts with existing data (e.g. duplicate email registrations).\n*   **429 Too Many Requests**: Client exceeded rate limits.\n*   **500 Internal Server Error**: Uncaught exception on the server.\n*   **503 Service Unavailable**: Server is down or overloaded.",
+    "summary": "HTTP status codes indicate request results: 2xx for success, 3xx for redirects, 4xx for client input errors, and 5xx for server execution failures.",
+    "id": 167
+  },
+  {
+    "category": "microservices",
+    "title": "Module 10: REST Best Practices",
+    "description": "REST API design best practices: resource naming, versioning, pagination, HATEOAS, and idempotency.",
+    "examples": "### 1. Resource Naming\nUse nouns (plural) instead of verbs for URIs to keep routes consistent:\n*   *Correct*: `GET /api/v1/orders`\n*   *Incorrect*: `GET /api/getOrders`\n\n---\n\n### 2. API Versioning\nProtect clients from breaking changes by versioning your API:\n*   **URI versioning**: `GET /api/v1/users`\n*   **Header versioning**: `GET /api/users` with header `Accept: application/vnd.company.v1+json`\n\n---\n\n### 3. Pagination, Sorting, and Filtering\nUse query parameters to filter, sort, and paginate large datasets:\n```\nGET /api/products?page=2&size=20&sort=price,desc&category=electronics\n```\n\n---\n\n### 4. HATEOAS (Hypermedia As The Engine Of Application State)\nInclude dynamic hypermedia links in responses, letting clients discover nearby resources automatically:\n```json\n{\n  \"id\": 101,\n  \"name\": \"Laptop\",\n  \"_links\": {\n    \"self\": { \"href\": \"/api/products/101\" },\n    \"reviews\": { \"href\": \"/api/products/101/reviews\" }\n  }\n}\n```",
+    "summary": "Use plural nouns for URIs. Version APIs to prevent breaking changes. Implement pagination to optimize large queries, and HATEOAS for discoverability.",
+    "id": 168
+  },
+  {
+    "category": "microservices",
+    "title": "Module 11: API Documentation",
+    "description": "Documenting REST APIs using OpenAPI schemas, Swagger UI, and SpringDoc libraries.",
+    "examples": "### 1. OpenAPI Specification\nOpenAPI is a machine-readable specification standard for describing, producing, and consuming RESTful web services.\n\n---\n\n### 2. Swagger UI Integration\nSwagger UI reads OpenAPI schemas dynamically, generating interactive browser pages where developers can test API endpoints directly:\n\n```java\n// SpringDoc OpenAPI Dependency (maven)\n<dependency>\n    <groupId>org.springdoc</groupId>\n    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>\n    <version>2.2.0</version>\n</dependency>\n```\n\n---\n\n### 3. Documenting Controller Schemas\nUse annotations to add descriptions and responses to Swagger documentation:\n```java\n@Operation(summary = \"Get employee by ID\", description = \"Returns employee details\")\n@ApiResponses(value = {\n    @ApiResponse(responseCode = \"200\", description = \"Found employee\"),\n    @ApiResponse(responseCode = \"404\", description = \"Employee not found\")\n})\n@GetMapping(\"/{id}\")\npublic Employee getEmp(@PathVariable Long id) { return service.get(id); }\n```",
+    "summary": "OpenAPI is the documentation standard for REST APIs. SpringDoc integrates Swagger UI automatically to generate interactive API testing pages.",
+    "id": 169
+  },
+  {
+    "category": "microservices",
+    "title": "Module 12: REST Controllers",
+    "description": "Building Web endpoints using Spring Boot: comparing RestController vs Controller, and request mappings.",
+    "examples": "### 1. @Controller vs. @RestController\n*   **@Controller**: Registers a class as a Spring MVC controller. Handler methods return a String representing a View template name (e.g. `index.html`). To return data directly, you must annotate methods with `@ResponseBody`.\n*   **@RestController**: A convenience annotation that combines `@Controller` and `@ResponseBody`. Registers a class as a REST controller; handler methods serialize objects directly to JSON in the HTTP response body.\n\n---\n\n### 2. Request Mappings\nMap HTTP methods to target Java methods:\n```java\n@RestController\n@RequestMapping(\"/api/products\")\npublic class ProductController {\n    \n    @GetMapping // GET /api/products\n    public List<Product> list() { return service.all(); }\n\n    @PostMapping // POST /api/products\n    public Product save(@RequestBody Product prod) { return service.save(prod); }\n}\n```",
+    "summary": "@RestController combines @Controller and @ResponseBody, returning serialized objects (JSON) directly to HTTP response bodies.",
+    "id": 170
+  },
+  {
+    "category": "microservices",
+    "title": "Module 13: Request Handling",
+    "description": "Mapping incoming HTTP data to Java parameters using PathVariable, RequestParam, RequestHeader, and RequestBody.",
+    "examples": "### 1. Reading Request Inputs\nSpring Boot maps incoming HTTP request data to method parameters using annotations:\n*   **@PathVariable**: Maps parameters from dynamic URL path segments:\n    ```java\n    @GetMapping(\"/users/{id}\")\n    public User getUser(@PathVariable(\"id\") Long id) {}\n    ```\n*   **@RequestParam**: Maps parameters from query parameters:\n    ```java\n    @GetMapping(\"/search\") // GET /search?q=laptop\n    public List<Product> search(@RequestParam(\"q\") String query) {}\n    ```\n*   **@RequestBody**: Maps incoming JSON payloads to Java objects:\n    ```java\n    @PostMapping\n    public Order save(@RequestBody OrderRequest order) {}\n    ```\n*   **@RequestHeader**: Maps header values to variables:\n    ```java\n    @GetMapping(\"/auth\")\n    public String checkAuth(@RequestHeader(\"Authorization\") String token) {}\n    ```",
+    "summary": "Map path parameters using @PathVariable, query variables using @RequestParam, payloads using @RequestBody, and headers using @RequestHeader.",
+    "id": 171
+  },
+  {
+    "category": "microservices",
+    "title": "Module 14: Response Handling",
+    "description": "Configuring HTTP response variables: ResponseEntity, custom status codes, and managing file uploads and downloads.",
+    "examples": "### 1. ResponseEntity Wrapper\n`ResponseEntity` represents the complete HTTP response, letting you configure headers, status codes, and the response body:\n```java\n@GetMapping(\"/{id}\")\npublic ResponseEntity<User> getUser(@PathVariable Long id) {\n    User user = service.findById(id);\n    return ResponseEntity.status(HttpStatus.OK).body(user); // Returns HTTP 200\n}\n```\n\n---\n\n### 2. Handling File Downloads\nReturn files as resource streams with appropriate content headers:\n```java\n@GetMapping(\"/download\")\npublic ResponseEntity<Resource> downloadFile() {\n    File file = new File(\"C:/files/report.pdf\");\n    InputStreamResource resource = new InputStreamResource(new FileInputStream(file));\n    \n    return ResponseEntity.ok()\n        .header(HttpHeaders.CONTENT_DISPOSITION, \"attachment;filename=\" + file.getName())\n        .contentType(MediaType.APPLICATION_PDF)\n        .contentLength(file.length())\n        .body(resource);\n}\n```",
+    "summary": "ResponseEntity configures headers, status codes, and response bodies. Use InputStreamResource and CONTENT_DISPOSITION headers to support file downloads.",
+    "id": 172
+  },
+  {
+    "category": "microservices",
+    "title": "Module 15: Exception Handling",
+    "description": "Global exception handling using RestControllerAdvice and custom ExceptionHandlers, and RFC 7807 problem details.",
+    "examples": "### 1. Global Exception Handler\nSpring Boot handles exceptions globally using `@RestControllerAdvice` and `@ExceptionHandler` annotations, returning structured error messages to the client:\n\n```java\n@RestControllerAdvice // Intercepts exceptions thrown by controllers\npublic class GlobalExceptionHandler {\n\n    @ExceptionHandler(ProductNotFoundException.class)\n    public ResponseEntity<ErrorDetails> handleNotFound(ProductNotFoundException ex) {\n        ErrorDetails error = new ErrorDetails(\n            HttpStatus.NOT_FOUND.value(),\n            ex.getMessage(),\n            System.currentTimeMillis()\n        );\n        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND); // Returns HTTP 404\n    }\n}\n```\n\n---\n\n### 2. RFC 7807 Problem Details\nSpring Boot 3 supports the RFC 7807 specification, a standard format for returning API error details:\n```java\n// Returns RFC 7807 error format automatically\nProblemDetail pd = ProblemDetail.forStatusAndDetail(\n    HttpStatus.NOT_FOUND, \"Product not found\"\n);\n```",
+    "summary": "Use @RestControllerAdvice and @ExceptionHandler to handle controller exceptions globally. Spring Boot 3 supports the RFC 7807 problem details error format.",
+    "id": 173
+  },
+  {
+    "category": "microservices",
+    "title": "Module 16: Validation",
+    "description": "JPA Bean Validation, input constraints, and building custom validators using ConstraintValidator.",
+    "examples": "### 1. Input Model Constraints\nAnnotate model fields with validation constraints:\n```java\npublic class UserDto {\n    @NotBlank(message = \"Username cannot be empty\")\n    private String username;\n\n    @Email(message = \"Invalid email format\")\n    private String email;\n}\n```\n\n---\n\n### 2. Custom Validator Implementation\nCreate a custom annotation and implement `ConstraintValidator`:\n```java\n// 1. Define custom annotation\n@Constraint(validatedBy = PhoneValidator.class)\n@Target({ ElementType.FIELD })\n@Retention(RetentionPolicy.RUNTIME)\npublic @interface ValidPhone {\n    String message() default \"Invalid phone number\";\n    Class<?>[] groups() default {};\n    Class<? extends Payload>[] payload() default {};\n}\n\n// 2. Implement validator\npublic class PhoneValidator implements ConstraintValidator<ValidPhone, String> {\n    public boolean isValid(String value, ConstraintValidatorContext context) {\n        return value != null && value.matches(\"\\\\d{10}\"); // Validates 10-digit number\n    }\n}\n```",
+    "summary": "Validate input requests by annotating fields. Create custom validations by implementing ConstraintValidator interfaces.",
+    "id": 174
+  },
+  {
+    "category": "microservices",
+    "title": "Module 17: Synchronous Communication",
+    "description": "Synchronous inter-service communication: OpenFeign, WebClient, and gRPC.",
+    "examples": "### 1. Synchronous Communication\nIn synchronous communication, Service A calls Service B and blocks, waiting for a response before continuing.\n\n---\n\n### 2. Spring Cloud OpenFeign\nDeclarative HTTP client that generates code dynamically based on interface declarations:\n```java\n@FeignClient(name = \"inventory-service\")\npublic interface InventoryClient {\n    @GetMapping(\"/api/inventory/{sku}\")\n    boolean checkStock(@PathVariable String sku);\n}\n```\n\n---\n\n### 3. WebClient (Non-Blocking Client)\nSpring WebFlux's non-blocking, reactive HTTP client. Replaces the legacy, blocking `RestTemplate`:\n```java\nWebClient webClient = WebClient.builder().baseUrl(\"http://api.com\").build();\nMono<User> userMono = webClient.get()\n    .uri(\"/users/{id}\", 1)\n    .retrieve()\n    .bodyToMono(User.class);\n```\n\n---\n\n### 4. gRPC\nA high-performance RPC framework developed by Google. Uses HTTP/2 and Protocol Buffers (Protobuf) to serialize binary payloads, making it faster than standard JSON over HTTP.",
+    "summary": "Synchronous communication blocks execution. OpenFeign provides declarative clients. WebClient handles reactive requests. gRPC uses binary serialization for maximum speed.",
+    "id": 175
+  },
+  {
+    "category": "microservices",
+    "title": "Module 18: Asynchronous Communication",
+    "description": "Asynchronous event-driven communication: message queues (Kafka, RabbitMQ) and event sourcing.",
+    "examples": "### 1. Asynchronous Communication\nIn asynchronous communication, Service A sends a message to a broker (e.g. Kafka) and continues execution without waiting for a response.\n\n---\n\n### 2. Message Brokers\n*   **RabbitMQ**: A traditional message broker. Uses exchanges and routing keys to route messages directly to queues. Ideal for transactional, complex routing workloads.\n*   **Apache Kafka**: A distributed event streaming platform. Writes events to append-only log partitions, allowing multiple consumers to replay logs as needed. Ideal for high-throughput log analysis workloads.\n\n---\n\n### 3. Event Sourcing\nInstead of saving only the current state of an object in a database table, Event Sourcing saves all modifications as a sequence of events.\n*   *Application*: Replaying the event log rebuilds the current state of the object, providing a complete audit trail.",
+    "summary": "Asynchronous communication decouples services using brokers like Kafka or RabbitMQ. Event Sourcing saves state modifications as an immutable sequence of events.",
+    "id": 176
+  },
+  {
+    "category": "microservices",
+    "title": "Module 19: Communication Patterns",
+    "description": "Enterprise integration communication patterns: Request-Response, Fire-and-Forget, and Publish-Subscribe.",
+    "examples": "### 1. Communication Patterns\nChoose appropriate communication patterns based on business requirements:\n\n*   **Request-Response**: Synchronous pattern where a client requests resources and blocks, waiting for a response.\n*   **Fire-and-Forget**: The client sends a command to a broker and continues execution instantly, without expecting a response:\n    ```\n    Client --> Send Command --> Message Queue (Request complete)\n    ```\n*   **Publish-Subscribe (Pub-Sub)**: One publisher publishes an event to a topic. Multiple consumer services subscribe to the topic to receive the event, reacting to modifications concurrently.\n*   **Request-Reply**: Asynchronous request pattern. Service A sends a message to an exchange with a `reply-to` queue header. Service B processes the request and sends a response back to the specified queue.",
+    "summary": "Request-Response is synchronous. Fire-and-Forget sends commands without expecting responses. Publish-Subscribe broadcasts events to multiple consumers concurrently.",
+    "id": 177
+  },
+  {
+    "category": "microservices",
+    "title": "Module 20: API Gateway",
+    "description": "Central entry point routing: path routing, rate limiting, and authentications using Spring Cloud Gateway.",
+    "examples": "### 1. Why use an API Gateway?\nAn API Gateway acts as a single entry point for all client requests, routing them to target backend microservices:\n\n```\nClient Requests -> API Gateway (Auth, Rate Limiting, CORS)\n                      |\n           +----------+----------+\n           |                     |\n     User Service          Order Service\n```\n\n---\n\n### 2. Cross-Cutting Concerns\n*   **Routing**: Routes requests to target services based on paths.\n*   **Security**: Validates JWT tokens, rejecting unauthorized requests before they reach backend services.\n*   **Rate Limiting**: Limits request rates to prevent denial-of-service (DoS) attacks.\n*   **SSL Termination**: Decrypts incoming SSL traffic, reducing encryption overhead on backend services.\n\n---\n\n### 3. Spring Cloud Gateway Configuration\nConfigure routing rules in YAML files:\n```yaml\nspring:\n  cloud:\n    gateway:\n      routes:\n        - id: order-service\n          uri: lb://order-service # Routes requests to load-balanced instances\n          predicates:\n            - Path=/api/orders/**\n```",
+    "summary": "API Gateways act as a single entry point for client requests, handling routing, authorization, rate limiting, and SSL decryption.",
+    "id": 178
+  },
+  {
+    "category": "microservices",
+    "title": "Module 21: Service Discovery",
+    "description": "Service Registry patterns: Eureka registration, discovery, heartbeats, and Kubernetes DNS.",
+    "examples": "### 1. What is Service Discovery?\nIn cloud microservices, instances scale up and down dynamically, changing their IP addresses. Service Discovery registers instance locations automatically.\n\n---\n\n### 2. Eureka Service Registration & Discovery\n*   **Registration**: On startup, a microservice instance sends its IP and port address to the Eureka registry server.\n*   **Heartbeat**: The instance sends periodic health checks to Eureka. If heartbeats stop, Eureka removes the instance.\n*   **Discovery**: When Service A wants to call Service B, it queries the Eureka server for B's active instances, load-balancing requests locally.\n\n```\nService B Instance ---> Register IP ---> Eureka Registry Server\nService A Instance ---> Query IP ------> Eureka Registry Server\n```\n\n---\n\n### 3. Kubernetes DNS (Platform Discovery)\nKubernetes handles service discovery natively. Each Service is assigned a static cluster IP and DNS name (e.g. `http://order-service`). Kubernetes automatically routes traffic to active pod instances.",
+    "summary": "Service Discovery registers dynamic instance IP addresses. Eureka uses heartbeats to track instance health. Kubernetes handles routing using built-in DNS.",
+    "id": 179
+  },
+  {
+    "category": "microservices",
+    "title": "Module 22: Configuration Management",
+    "description": "Centralizing configurations using Spring Cloud Config, and active profiles.",
+    "examples": "### 1. Why Centralized Configuration?\nIn microservice architectures with hundreds of instances, modifying configuration files (like database passwords) manually is impossible.\n\n---\n\n### 2. Spring Cloud Config\nProvides centralized server-side configuration management, storing configurations in a Git repository or database:\n*   **Config Server**: Reads configuration files from a Git repository, serving them to microservices on startup.\n*   **Config Client**: Microservices fetch their configurations from the Config Server on startup.\n*   **@RefreshScope**: Reloads configurations dynamically at runtime without restarting the application:\n    ```java\n    @RestController\n    @RefreshScope // Reloads variable values on /actuator/refresh calls\n    public class FeatureController {\n        @Value(\"${feature.toggle}\")\n        private boolean active;\n    }\n    ```",
+    "summary": "Spring Cloud Config centralizes configurations in a Git repository. Use @RefreshScope to reload parameters at runtime without restarting applications.",
+    "id": 180
+  },
+  {
+    "category": "microservices",
+    "title": "Module 23: Load Balancing",
+    "description": "Client-side vs Server-side load balancing, Spring Cloud LoadBalancer, and routing algorithms.",
+    "examples": "### 1. Load Balancing Strategies\n*   **Server-Side Load Balancing (e.g., NGINX, AWS ALB)**: The client calls a single load balancer. The load balancer routes the request to an active backend server, acting as a middleman.\n*   **Client-Side Load Balancing (e.g., Spring Cloud LoadBalancer)**: The client fetches the list of active instances from the Service Registry, caching it locally. The client then selects an active instance and calls it directly, eliminating load balancer bottlenecks.\n\n---\n\n### 2. Routing Algorithms\n*   **Round Robin**: Routes requests sequentially to each instance in the pool.\n*   **Least Connection**: Routes requests to the instance with the fewest active connections.\n*   **Random**: Selects an active instance randomly.\n*   **Sticky Sessions**: Routes requests from a specific client to the same backend server instance, useful for stateful applications.",
+    "summary": "Server-side load balancers act as middlemen. Client-side load balancers select active instances locally, reducing latency bottlenecks.",
+    "id": 181
+  },
+  {
+    "category": "microservices",
+    "title": "Module 24: Fault Tolerance",
+    "description": "Implementing resilient patterns: Circuit Breakers, Retries, Timeouts, Rate Limiters, and Resilience4j.",
+    "examples": "### 1. Fault Tolerance in Microservices\nIf a downstream microservice crashes, calls to it will block, exhausting threads and causing the entire application to crash.\n\n---\n\n### 2. Resilience4j Patterns\n*   **Circuit Breaker**: Stops calling failing services temporarily:\n    *   *Closed State*: All requests pass through.\n    *   *Open State*: Downstream calls fail immediately, bypassing execution and returning fallback values instead.\n    *   *Half-Open State*: Sends a few test requests to verify if the service has recovered.\n*   **Retry**: Automatically retries a failing request a specified number of times before failing.\n*   **Rate Limiter**: Limits the rate of incoming calls to prevent resource exhaustion.\n*   **Bulkhead**: Isolates thread pools. A failure in one service's thread pool does not affect other services' pools.\n\n```java\n@GetMapping(\"/details\")\n@CircuitBreaker(name = \"catalogBreaker\", fallbackMethod = \"getCatalogFallback\")\npublic Catalog getDetails() { return catalogClient.get(); }\n```",
+    "summary": "Fault tolerance prevents system crashes. Resilience4j Circuit Breakers stop calls to failing services, returning fallback values instead.",
+    "id": 182
+  },
+  {
+    "category": "microservices",
+    "title": "Module 25: Distributed Transactions",
+    "description": "CAP Theorem, BASE principles, Saga patterns (Orchestration vs Choreography), and 2-Phase Commit.",
+    "examples": "### 1. CAP Theorem & BASE\n*   **CAP Theorem**: A distributed system can guarantee at most two of: **Consistency** (all nodes read identical data), **Availability** (every request gets a response), and **Partition Tolerance** (system runs despite network failures). In partitions, systems must choose between Consistency or Availability.\n*   **BASE**: Basically Available, Soft state, Eventual consistency. Relaxes strict ACID constraints to improve scalability.\n\n---\n\n### 2. Saga Design Pattern\nManages transactions across multiple databases using a sequence of local transactions:\n*   **Choreography**: Event-driven pattern. Services publish events that trigger local transactions in other services. Simple, but hard to trace.\n*   **Orchestration**: A central orchestrator class coordinates transactions, calling services sequentially and handling rollback operations on failure.\n*   **Compensating Transactions**: Undo transactions executed on failure to reverse modifications (e.g. refunding credit card charges if booking flights fails).",
+    "summary": "CAP theorem balances consistency and availability. Saga patterns coordinate distributed transactions using a sequence of local steps and compensating rollbacks.",
+    "id": 183
+  },
+  {
+    "category": "microservices",
+    "title": "Module 26: Security",
+    "description": "Securing microservices: OAuth2, OpenID Connect, JWT validations, and mutual TLS (mTLS).",
+    "examples": "### 1. OAuth2 & OpenID Connect (OIDC)\n*   **OAuth2**: An authorization framework. Issues access tokens (JWTs) allowing third-party applications to access resources on behalf of users.\n*   **OpenID Connect (OIDC)**: An authentication layer built on top of OAuth2. Returns ID tokens containing user profile metadata.\n\n---\n\n### 2. JSON Web Token (JWT)\nA stateless token format containing three segments: Header (algorithm), Payload (claims, roles, expiration), and Signature (secret key verification). Checked instantly by the API Gateway without requiring database roundtrips.\n\n---\n\n### 3. Mutual TLS (mTLS)\nSecures inter-service communication:\n*   **Standard TLS**: The client verifies the server's certificate.\n*   **mTLS**: Both client and server verify each other's certificates, preventing man-in-the-middle attacks within the cluster.",
+    "summary": "OAuth2 handles authorization; OpenID Connect handles authentication. JWTs contain claims. Use mTLS to encrypt communication inside your service cluster.",
+    "id": 184
+  },
+  {
+    "category": "microservices",
+    "title": "Module 27: Distributed Caching",
+    "description": "Redis distributed caching, cache strategies (Cache-Aside, Write-Through), and TTL eviction.",
+    "examples": "### 1. Distributed Cache (Redis)\nInstead of storing cache records in a single service's local memory (which is lost when scaling instances), a distributed cache (like Redis) stores cache data in a central in-memory store, shared across all microservice instances.\n\n---\n\n### 2. Caching Strategies\n*   **Cache-Aside**: The application checks the cache first. If a cache miss occurs, it queries the database, writes the result to the cache, and returns it.\n*   **Write-Through**: The application writes data to the cache, and the cache immediately writes it to the database, ensuring consistency.\n*   **Write-Behind**: The application writes data to the cache, which writes it to the database asynchronously, improving write speeds.\n\n---\n\n### 3. Cache Eviction & TTL\n*   **TTL (Time-To-Live)**: Expiry duration after which cache keys are deleted.\n*   **Eviction Policies**: Reclaims memory when the cache is full (e.g. Least Recently Used (LRU) or Least Frequently Used (LFU)).",
+    "summary": "Redis centralizes cache storage across service instances. Cache-Aside loads data on cache misses; write policies handle updates. Set TTLs to prevent dirty reads.",
+    "id": 185
+  },
+  {
+    "category": "microservices",
+    "title": "Module 28: Centralized Logging",
+    "description": "Log forwarding, Correlation IDs, log aggregation using the ELK Stack, and MDC tracing.",
+    "examples": "### 1. The Logging Challenge\nIn microservices, a single client request can trigger a chain of calls across multiple services. Since logs are scattered across different servers, tracing errors is difficult.\n\n---\n\n### 2. Correlation IDs & MDC\n*   **Correlation ID**: A unique UUID assigned to a request at the API Gateway. It is passed in HTTP headers to every downstream service in the call chain.\n*   **MDC (Mapped Diagnostic Context)**: A thread-local log framework. Automatically includes the Correlation ID in every log message, allowing you to trace the request across all logs.\n\n---\n\n### 3. ELK Aggregation Stack\nCentralizes log collection and analysis:\n*   **Logstash/Fluentd**: Collects logs from microservices, parsing and formatting them.\n*   **Elasticsearch**: Stores and indexes logs, enabling fast searches.\n*   **Kibana**: Visualizes logs in a web interface, letting developers filter logs by correlation ID.",
+    "summary": "Centralized logging aggregates logs using the ELK stack. Use Correlation IDs and MDC to trace requests across all service log files.",
+    "id": 186
+  },
+  {
+    "category": "microservices",
+    "title": "Module 29: Monitoring",
+    "description": "Monitoring JVM metrics: Spring Boot Actuator, Prometheus scraping, and Grafana dashboards.",
+    "examples": "### 1. Actuator Metrics\nSpring Boot Actuator collects health metrics (CPU usage, heap memory allocations, database connections).\n\n---\n\n### 2. Prometheus Metrics Scraping\nPrometheus is a time-series database. It periodically scrapes system metrics from microservice `/actuator/prometheus` endpoints.\n\n```\nMicroservice --- Exposes /actuator/prometheus ---> Prometheus DB\nGrafana Dashboard <----- Queries Metrics <------- Prometheus DB\n```\n\n---\n\n### 3. Grafana Dashboard Visualizations\nGrafana connects to Prometheus databases, displaying real-time system performance dashboards. Alert rules can trigger email or Slack notifications if CPU or memory usage exceeds set limits.",
+    "summary": "Actuator collects application metrics. Prometheus scrapes and stores these metrics. Grafana queries Prometheus to display system performance dashboards.",
+    "id": 187
+  },
+  {
+    "category": "microservices",
+    "title": "Module 30: Distributed Tracing",
+    "description": "Distributed tracing using OpenTelemetry, Zipkin, and Jaeger to monitor request lifecycles.",
+    "examples": "### 1. Distributed Tracing Concepts\nDistributed tracing tracks the path of a request as it flows through a microservices system.\n*   **Trace ID**: A unique identifier for the entire request path.\n*   **Span ID**: Identifies a specific unit of work (e.g. a database query, or a downstream API call) within the trace.\n\n```\nClient Request (Trace ID: ABC)\n   \u251c\u2500\u2500 Service A (Span ID: 1)\n   \u2514\u2500\u2500 Service B (Span ID: 2, Parent Span: 1)\n          \u2514\u2500\u2500 Database Query (Span ID: 3, Parent Span: 2)\n```\n\n---\n\n### 2. OpenTelemetry, Jaeger, and Zipkin\n*   **OpenTelemetry**: An API standard used to instrument applications and collect trace data.\n*   **Zipkin / Jaeger**: Trace collector backends. They aggregate span metrics and visualize request paths, letting developers identify performance bottlenecks.",
+    "summary": "Distributed tracing tracks request lifecycles across services using Trace and Span IDs. OpenTelemetry collects trace metrics; Zipkin and Jaeger visualize them.",
+    "id": 188
+  },
+  {
+    "category": "microservices",
+    "title": "Module 31: Messaging",
+    "description": "Message architectures: Kafka brokers (topics, partitions, consumer groups) and RabbitMQ.",
+    "examples": "### 1. Apache Kafka Architecture\nKafka is an append-only event streaming platform:\n*   **Topic**: A category or channel to which events are published.\n*   **Partition**: Topics are divided into partitions stored on different servers, enabling horizontal scaling and parallel consumption.\n*   **Consumer Group**: A group of consumers that cooperate to read messages. Each partition is assigned to a single consumer in the group to prevent duplicate processing.\n*   **Delivery Guarantees**:\n    *   *Exactly Once*: Messages are processed exactly once (ideal, but requires transactional setups).\n    *   *At Least Once*: Messages can be processed multiple times (requires idempotent consumers).\n    *   *At Most Once*: Messages are never processed twice, but can be lost.\n\n---\n\n### 2. RabbitMQ Architecture\nRabbitMQ is a traditional message broker:\n*   **Exchange**: Receives messages from publishers and routes them to queues based on routing keys.\n*   **Dead Letter Queue (DLQ)**: Holds failing messages that cannot be processed, letting developers analyze and debug failures.",
+    "summary": "Kafka scales using partitioned topics and consumer groups. RabbitMQ routes messages using exchanges. Use DLQs to hold failing messages.",
+    "id": 189
+  },
+  {
+    "category": "microservices",
+    "title": "Module 32: Containerization",
+    "description": "Introduction to Docker: Dockerfiles, Docker Compose, images, containers, networks, and volumes.",
+    "examples": "### 1. Why Containerization?\nApplications run in different environments (dev, staging, prod). Variations in OS versions, libraries, and configurations can cause deployment failures.\n*   **Docker**: Packages an application and all its dependencies (JVM, libraries, configs) into a single, immutable container image that runs identically on any environment.\n\n---\n\n### 2. Dockerfile Example\nA Dockerfile defines the steps to build a container image:\n```dockerfile\nFROM eclipse-temurin:17-jdk-alpine\nCOPY target/app.jar app.jar\nENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]\n```\n\n---\n\n### 3. Docker Compose\nA tool used to run multi-container applications:\n```yaml\n# docker-compose.yml\nservices:\n  db:\n    image: postgres:15\n    environment:\n      POSTGRES_PASSWORD: secret\n  api:\n    build: .\n    ports:\n      - \"8080:8080\"\n```",
+    "summary": "Docker packages applications and dependencies into container images. Docker Compose coordinates multi-container systems.",
+    "id": 190
+  },
+  {
+    "category": "microservices",
+    "title": "Module 33: Orchestration",
+    "description": "Kubernetes orchestration: Pods, ReplicaSets, Deployments, Services, ConfigMaps, and Ingress.",
+    "examples": "### 1. Why use Orchestration?\nManaging thousands of Docker containers manually (handling scaling, updates, and failovers) is impossible.\n*   **Kubernetes (K8s)**: An open-source container orchestration platform designed to automate container deployments and scaling.\n\n---\n\n### 2. Core Kubernetes Components\n*   **Pod**: The smallest deployable unit in Kubernetes, wrapping one or more containers.\n*   **ReplicaSet**: Ensures a specified number of identical pod instances are running at all times.\n*   **Deployment**: Manages declarative updates for Pods and ReplicaSets (e.g. rolling updates).\n*   **Service**: Exposes pods to network traffic, acting as a load balancer within the cluster.\n*   **ConfigMap / Secret**: Stores configuration settings and passwords separately from container images.\n*   **Ingress**: Routes external HTTP traffic to services within the cluster, acting as an API Gateway.",
+    "summary": "Kubernetes automates container deployment and scaling. Key components include Pods, Deployments (updates), Services (load balancing), and Ingress (routing).",
+    "id": 191
+  },
+  {
+    "category": "microservices",
+    "title": "Module 34: Cloud Deployments",
+    "description": "Deploying microservices to the cloud: AWS, Azure, Google Cloud (GCP), EKS, AKS, and GKE.",
+    "examples": "### 1. Managed Kubernetes Services\nInstead of managing Kubernetes servers manually, cloud providers offer managed Kubernetes services:\n*   **AWS EKS (Elastic Kubernetes Service)**: Highly secure and integrated with AWS resources.\n*   **Azure AKS (Azure Kubernetes Service)**: Seamlessly integrates with Azure Active Directory.\n*   **GCP GKE (Google Kubernetes Engine)**: The original, most feature-rich managed Kubernetes service.\n\n---\n\n### 2. Serverless Container Deployments\nFor lightweight applications, deploy containers directly without managing Kubernetes clusters:\n*   **AWS ECS (Elastic Container Service) with Fargate**: Launches containers serverlessly, scaling resources automatically based on demand.\n*   **Google Cloud Run**: Runs container images serverlessly, scaling down to zero when idle to save costs.",
+    "summary": "Cloud providers offer managed Kubernetes (EKS, AKS, GKE) and serverless container platforms (ECS, Cloud Run) to simplify container deployments.",
+    "id": 192
+  },
+  {
+    "category": "microservices",
+    "title": "Module 35: CI/CD Pipelines",
+    "description": "Continuous Integration and Deployment: Jenkins, GitHub Actions, GitLab CI, Maven, Gradle, SonarQube, and Docker registries.",
+    "examples": "### 1. CI/CD Pipeline Flow\nA CI/CD pipeline automates the software release process:\n\n```\nCode Push -> Build (Maven/Gradle) -> Test -> Scan (SonarQube) -> Package (Docker) -> Push -> Deploy (K8s)\n```\n\n---\n\n### 2. GitHub Actions Workflow Example\n```yaml\nname: Build and Push Docker Image\non:\n  push:\n    branches: [ main ]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v2\n      - name: Build with Maven\n        run: mvn clean package\n      - name: Build Docker Image\n        run: docker build -t myregistry/app:latest .\n      - name: Push to Registry\n        run: docker push myregistry/app:latest\n```\n\n---\n\n### 3. Code Quality Analysis (SonarQube)\nScans code during the build phase to identify security vulnerabilities, code smells, and check unit test coverage.",
+    "summary": "CI/CD pipelines automate building, testing, and deploying applications. Use tools like GitHub Actions, Maven, SonarQube, and Docker registries.",
+    "id": 193
+  },
+  {
+    "category": "microservices",
+    "title": "Module 36: Testing",
+    "description": "Testing microservices: Unit testing, Testcontainers, WireMock, and Consumer-Driven Contract testing.",
+    "examples": "### 1. Integration Testing with Testcontainers\nTesting databases or message brokers using in-memory mocks (e.g. H2 database) can behave differently than production databases.\n*   **Testcontainers**: Spawns real Docker containers (e.g. PostgreSQL, Redis, Kafka) dynamically during test runs, ensuring integration tests run against real systems.\n\n---\n\n### 2. WireMock API Mocking\nMocks external REST APIs during integration tests, letting you configure mock HTTP responses:\n```java\nstubFor(get(urlEqualTo(\"/api/user/1\"))\n    .willReturn(aResponse()\n        .withStatus(200)\n        .withHeader(\"Content-Type\", \"application/json\")\n        .withBody(\"{\\\"id\\\":1,\\\"name\\\":\\\"Alice\\\"}\")));\n```\n\n---\n\n### 3. Consumer-Driven Contract Testing\nEnsures microservices agree on API schemas (contracts).\n*   **Pact / Spring Cloud Contract**: The consumer service defines its request-response requirements in a contract file. The provider service runs automated tests against this contract to guarantee that updates do not break consumer integrations.",
+    "summary": "Testcontainers runs real databases in Docker during tests. WireMock mocks API responses. Contract testing ensures API changes do not break consumers.",
+    "id": 194
+  },
+  {
+    "category": "microservices",
+    "title": "Module 37: Performance Tuning",
+    "description": "Optimizing API performance: HikariCP connection pooling, async processing, GZIP/Brotli compression, and HTTP/2.",
+    "examples": "### 1. Connection & Thread Pools\n*   **HikariCP Sizing**: Keep database connection pools small (e.g. 10-20 connections). Oversized pools cause database context switching overhead.\n*   **Thread Pools**: Configure Tomcat thread pools to prevent resource exhaustion under heavy load.\n\n---\n\n### 2. HTTP/2 and HTTP/3 Protocol\n*   **HTTP/1.1**: Opens a new TCP socket connection per request, or suffers from Head-of-Line blocking.\n*   **HTTP/2**: Supports **Multiplexing** (sending multiple requests and responses concurrently over a single TCP connection), reducing connection overhead.\n*   **HTTP/3**: Uses UDP-based **QUIC** protocols to eliminate connection handshakes and improve performance on lossy networks.\n\n---\n\n### 3. Payload Compression\nEnable GZIP or Brotli compression in configurations to compress JSON payloads, saving network bandwidth:\n```properties\nserver.compression.enabled=true\nserver.compression.mime-types=application/json\n```",
+    "summary": "Size HikariCP pools correctly. Use HTTP/2 multiplexing to reduce connection overhead, and enable payload compression to save bandwidth.",
+    "id": 195
+  },
+  {
+    "category": "microservices",
+    "title": "Module 38: Deployment Strategies",
+    "description": "Software deployment strategies: Blue-Green, Canary, Rolling updates, and Feature Flags.",
+    "examples": "### 1. Rolling Update\nThe default Kubernetes strategy. Replaces old pod instances with new version instances sequentially, ensuring zero-downtime deployments.\n\n---\n\n### 2. Blue-Green Deployment\nMaintains two identical physical environments:\n*   **Blue**: Active production environment serving traffic.\n*   **Green**: Idle environment where the new version is deployed and tested.\n*   *Release*: Once green is validated, the router switches traffic from blue to green instantly. Fast rollbacks are achieved by switching traffic back to blue.\n\n---\n\n### 3. Canary Deployment\nDeploys the new version to a small subset of instances (e.g. 5% of traffic).\n*   *Validation*: If the canary instances perform successfully without errors, the new version is rolled out to the rest of the system.\n\n---\n\n### 4. Feature Flags\nAllows enabling or disabling features dynamically at runtime without deploying new code. Useful for testing features in production safely.",
+    "summary": "Rolling updates replace instances sequentially. Blue-Green switches traffic between two environments. Canary deploys updates to a subset of users first.",
+    "id": 196
+  },
+  {
+    "category": "microservices",
+    "title": "Module 39: Production Readiness",
+    "description": "Configuring liveness and readiness probes, graceful shutdowns, and circuit monitoring.",
+    "examples": "### 1. Kubernetes Health Probes\nKubernetes monitors container health using probes:\n*   **Liveness Probe**: Checks if the container is running. If it fails, Kubernetes restarts the container.\n*   **Readiness Probe**: Checks if the container is ready to receive network traffic. If it fails, Kubernetes removes the pod from the service load balancer:\n    ```yaml\n    readinessProbe:\n      httpGet:\n        path: /actuator/health/readiness\n        port: 8080\n    ```\n\n---\n\n### 2. Graceful Shutdown\nWhen a container is terminated, it should stop accepting new requests, complete active transactions, close connections, and then shut down. Enable graceful shutdown in Spring Boot configurations:\n```properties\nserver.shutdown=graceful\n```",
+    "summary": "Liveness probes restart crashed containers. Readiness probes manage traffic routing. Enable graceful shutdown to complete active requests before stopping.",
+    "id": 197
+  },
+  {
+    "category": "microservices",
+    "title": "Module 40: Microservice Design Patterns",
+    "description": "Distributed patterns: CQRS, Event Sourcing, Sidecar, Backend-For-Frontend (BFF), Outbox, and Inbox.",
+    "examples": "### 1. CQRS (Command Query Responsibility Segregation)\nSeparates read and write operations into different database models:\n*   **Command Model**: Optimized for write operations (inserts/updates).\n*   **Query Model**: Optimized for read operations (searches/views), often utilizing a fast read-only replica database.\n\n---\n\n### 2. Transactional Outbox Pattern\nEnsures atomicity when saving data to a database and publishing events to a broker:\n1.  The service writes business records and event records to an **Outbox Table** in the database within a single transaction.\n2.  A separate message relay process polls the Outbox Table and publishes events to the broker, ensuring events are always published if database writes succeed.\n\n---\n\n### 3. Backend-For-Frontend (BFF)\nInstead of mobile and desktop clients calling the same API Gateway:\n*   **BFF**: Deploys dedicated API gateways for each frontend type (e.g. mobile BFF, web BFF), optimizing payloads and headers for each platform.",
+    "summary": "CQRS segregates read and write paths. Outbox patterns guarantee event delivery. BFF gateways optimize APIs for specific client platforms.",
+    "id": 198
+  },
+  {
+    "category": "microservices",
+    "title": "Module 41: Interview Topics",
+    "description": "Answers to top microservices and REST API interview questions.",
+    "examples": "### 1. Top Q&A\n*   **What is the difference between Orchestration and Choreography in Saga?** Orchestration uses a central orchestrator class to call services sequentially and handle rollbacks. Choreography uses an event-driven pattern where services publish events that trigger local transactions in other services.\n*   **What is eventual consistency?** A consistency model where data replication across distributed databases is asynchronous. If no new updates are made, all databases eventually sync and contain identical data.\n*   **How does a Circuit Breaker prevent cascading failures?** If a service call fails repeatedly, the circuit breaker enters an open state, failing downstream calls immediately and returning fallback values instead of blocking threads.\n*   **What is the difference between PUT and PATCH?** PUT replaces an existing resource entirely. PATCH applies partial updates to specific fields.\n*   **Why is database-per-service mandatory?** To maintain service independence. It prevents tight coupling on database schemas, eliminates resource competition, and allows teams to deploy services independently.",
+    "summary": "Understand distributed architectures. Saga patterns manage transactions. Circuit breakers isolate failures. Eventual consistency updates databases asynchronously.",
+    "id": 199
   }
 ]
