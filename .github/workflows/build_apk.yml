@@ -36,8 +36,10 @@ jobs:
       - name: Generate Launcher Icons
         run: flutter pub run flutter_launcher_icons
 
-      - name: Build Release APK
-        run: flutter build apk --release --verbose > build.log 2>&1
+      - name: Build Release APK and AAB
+        run: |
+          flutter build apk --release --verbose > build_apk.log 2>&1
+          flutter build appbundle --release --verbose > build_aab.log 2>&1
 
       - name: Push Build Log on Failure
         if: failure()
@@ -45,7 +47,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b build-logs
-          git add -f build.log
+          git add -f build_apk.log build_aab.log
           git commit -m "Upload build log on failure [skip ci]"
           git push origin build-logs --force
 
@@ -55,3 +57,10 @@ jobs:
         with:
           name: java-master-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload Release AAB Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-master-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
