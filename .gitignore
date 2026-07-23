@@ -1,8 +1,3 @@
-# Keystores & Keys
-*.jks
-*.keystore
-key.properties
-
 # Flutter/Dart build and local files
 .dart_tool/
 .flutter-plugins
