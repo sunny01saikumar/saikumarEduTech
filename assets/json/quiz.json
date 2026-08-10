@@ -3,7 +3,12 @@
     "id": 1,
     "category": "java_quiz",
     "question": "Which of these is NOT a valid access modifier in Java?",
-    "options": ["public", "private", "protected", "internal"],
+    "options": [
+      "public",
+      "private",
+      "protected",
+      "internal"
+    ],
     "correctOptionIndex": 3,
     "explanation": "'internal' is used in Kotlin and Swift. In Java, the four access levels are: public, private, protected, and package-private (default, no keyword)."
   },
@@ -11,7 +16,12 @@
     "id": 2,
     "category": "java_quiz",
     "question": "What is the default value of a local variable in Java?",
-    "options": ["null", "0", "false", "None of the above (compilation error)"],
+    "options": [
+      "null",
+      "0",
+      "false",
+      "None of the above (compilation error)"
+    ],
     "correctOptionIndex": 3,
     "explanation": "Local variables in Java do not get any default values. They must be explicitly initialized before use, otherwise, the code will fail to compile."
   },
@@ -19,7 +29,12 @@
     "id": 3,
     "category": "collections_quiz",
     "question": "Which of the following collections guarantees that elements are kept in a sorted order?",
-    "options": ["HashSet", "ArrayList", "TreeSet", "LinkedHashSet"],
+    "options": [
+      "HashSet",
+      "ArrayList",
+      "TreeSet",
+      "LinkedHashSet"
+    ],
     "correctOptionIndex": 2,
     "explanation": "TreeSet stores elements in a self-balancing binary search tree (Red-Black tree) which automatically maintains elements in their natural sorted order or sorted by a custom Comparator."
   },
@@ -27,7 +42,12 @@
     "id": 4,
     "category": "collections_quiz",
     "question": "What is the initial default capacity of an ArrayList in Java?",
-    "options": ["0", "10", "16", "20"],
+    "options": [
+      "0",
+      "10",
+      "16",
+      "20"
+    ],
     "correctOptionIndex": 1,
     "explanation": "When an ArrayList is instantiated without specifying size, it starts with an empty buffer which expands to a default capacity of 10 when the first element is added."
   },
@@ -35,7 +55,12 @@
     "id": 5,
     "category": "streams_quiz",
     "question": "Which stream operation is considered a terminal operation?",
-    "options": ["filter", "map", "reduce", "peek"],
+    "options": [
+      "filter",
+      "map",
+      "reduce",
+      "peek"
+    ],
     "correctOptionIndex": 2,
     "explanation": "'reduce' is a terminal operation that aggregates the elements of a stream into a single summary value. map, filter, and peek are intermediate operations that return another stream."
   },
@@ -43,7 +68,12 @@
     "id": 6,
     "category": "spring_quiz",
     "question": "Which annotation is used to tell Spring Boot to scan and configure database connectivity automatically?",
-    "options": ["@SpringBootApplication", "@EnableAutoConfiguration", "@Autowired", "@EnableWebMvc"],
+    "options": [
+      "@SpringBootApplication",
+      "@EnableAutoConfiguration",
+      "@Autowired",
+      "@EnableWebMvc"
+    ],
     "correctOptionIndex": 1,
     "explanation": "@EnableAutoConfiguration instructs Spring Boot to look at classpaths and configure beans matching dependencies (like DataSource). @SpringBootApplication includes this annotation internally."
   },
@@ -51,8 +81,78 @@
     "id": 7,
     "category": "sql_quiz",
     "question": "Which SQL statement is used to remove all rows from a table quickly without logging individual row deletions?",
-    "options": ["DELETE", "TRUNCATE", "DROP", "REMOVE"],
+    "options": [
+      "DELETE",
+      "TRUNCATE",
+      "DROP",
+      "REMOVE"
+    ],
     "correctOptionIndex": 1,
     "explanation": "TRUNCATE is a DDL operation that empties a table completely by deallocating the data pages, making it much faster than DELETE (a DML operation that scans and logs each row)."
+  },
+  {
+    "category": "spring_quiz",
+    "question": "Which RabbitMQ exchange type broadcasts received messages to all bound queues, ignoring routing keys?",
+    "options": [
+      "Direct Exchange",
+      "Topic Exchange",
+      "Fanout Exchange",
+      "Headers Exchange"
+    ],
+    "correctOptionIndex": 2,
+    "explanation": "A Fanout exchange completely ignores routing keys and simply broadcasts every message it receives to all queues bound to it. This is ideal for publish-subscribe broadcast patterns.",
+    "id": 8
+  },
+  {
+    "category": "streams_quiz",
+    "question": "Which of the following is a key architectural feature of Virtual Threads in Java 21?",
+    "options": [
+      "They map 1:1 directly to Operating System (OS) kernel threads",
+      "They are lightweight user-mode threads managed by the JVM on the Heap",
+      "They cannot execute any blocking I/O calls",
+      "They run exclusively on a single-core CPU architecture"
+    ],
+    "correctOptionIndex": 1,
+    "explanation": "Virtual Threads are lightweight threads managed entirely by the JVM on the Heap, rather than matching 1:1 to OS threads. This allows millions of concurrent threads to block on I/O without native memory exhaustion.",
+    "id": 9
+  },
+  {
+    "category": "spring_quiz",
+    "question": "In RabbitMQ, what does setting the Prefetch Count (QoS) configure on a consumer?",
+    "options": [
+      "The maximum number of unacknowledged messages sent to a consumer at once",
+      "The number of milliseconds to wait before a message expires",
+      "The size limit of message payloads sent over AMQP socket channels",
+      "The number of times a message is retried before forwarding to DLX"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Prefetch Count restricts the number of unacknowledged messages dispatchable to a consumer. Setting it to a low value (like 1 or 5) prevents a single consumer from stealing all messages while other consumers are idle.",
+    "id": 10
+  },
+  {
+    "category": "java_quiz",
+    "question": "Which modern Garbage Collector in Java offers ultra-low pause times (under 1ms) even for multi-terabyte heaps?",
+    "options": [
+      "Serial GC",
+      "Parallel GC",
+      "G1GC",
+      "ZGC"
+    ],
+    "correctOptionIndex": 3,
+    "explanation": "ZGC (Z Garbage Collector) performs marking, relocation, and compaction concurrently with application threads, ensuring pause times do not scale with heap size and stay well under 1 millisecond.",
+    "id": 11
+  },
+  {
+    "category": "spring_quiz",
+    "question": "In RabbitMQ, what is a DLX (Dead Letter Exchange) used for?",
+    "options": [
+      "To encrypt messages before dispatching them over the public network",
+      "To route messages that are rejected without requeue, expired, or dropped due to queue limits",
+      "To optimize caching of frequently routed binary payloads in memory",
+      "To send email notifications when a consumer server crashes"
+    ],
+    "correctOptionIndex": 1,
+    "explanation": "A DLX collects messages that are rejected without requeuing, have expired due to TTL, or have been dropped because queue limits were exceeded, making it easier to analyze and debug processing failures.",
+    "id": 12
   }
 ]

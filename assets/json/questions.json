@@ -2098,5 +2098,159 @@
       "Failover"
     ],
     "tips": "Explain that failovers should minimize data loss (RPO) and downtime duration (RTO)."
+  },
+  {
+    "category": "rest_microservices",
+    "difficulty": "Medium",
+    "question": "What is RabbitMQ, and what are the main components of the AMQP model?",
+    "answer": "RabbitMQ is an open-source message broker that facilitates asynchronous communication between distributed services. Its AMQP model consists of Producers (publishers), Exchanges (routers), Bindings (routing paths), Queues (buffers), and Consumers (subscribers).",
+    "explanation": "Instead of sending messages directly to a queue, producers publish messages to an exchange. The exchange then inspects message headers/keys and routes them into one or more queues based on configured bindings.",
+    "example": "Producer -> Exchange (Routing Key) -> Binding -> Queue -> Consumer",
+    "tags": [
+      "RabbitMQ",
+      "Message Brokers",
+      "AMQP",
+      "System Integration"
+    ],
+    "tips": "Always clarify that RabbitMQ decouples services both in time (services don't have to be active at the same time) and space.",
+    "id": 141
+  },
+  {
+    "category": "rest_microservices",
+    "difficulty": "Hard",
+    "question": "Explain the differences between Direct, Fanout, Topic, and Headers exchanges in RabbitMQ.",
+    "answer": "1. Direct: Routes messages matching the exact routing key. 2. Fanout: Ignores keys, broadcasting to all bound queues. 3. Topic: Matches routing keys containing wildcards (* and #). 4. Headers: Uses message header key-value attributes for routing.",
+    "explanation": "Topic exchange wildcards: '*' matches exactly one word (e.g. 'log.info'). '#' matches zero or more words (e.g. 'log.#'). Headers exchange uses headers argument maps configured on binding declarations.",
+    "example": "Topic binding 'order.*' matches 'order.created' and 'order.deleted', but not 'order.item.created'.",
+    "tags": [
+      "RabbitMQ",
+      "Exchanges",
+      "Routing Patterns"
+    ],
+    "tips": "Interviewers love asking about topic wildcard symbols (* vs #), so memorize their exact differences.",
+    "id": 142
+  },
+  {
+    "category": "rest_microservices",
+    "difficulty": "Medium",
+    "question": "What is a Dead Letter Exchange (DLX) in RabbitMQ, and when are messages sent to it?",
+    "answer": "A Dead Letter Exchange (DLX) is a standard exchange configured to automatically receive messages that cannot be processed. Messages are dead-lettered when: 1. They are rejected (Nack) without requeue, 2. Message TTL expires, 3. The queue length limit is reached.",
+    "explanation": "When a queue is declared, you configure the arguments 'x-dead-letter-exchange' and optionally 'x-dead-letter-routing-key' to route failed messages to the DLX, separating buggy payloads for debugging.",
+    "example": "Map<String, Object> args = new HashMap<>();\nargs.put(\"x-dead-letter-exchange\", \"dlx.exchange\");\nQueue q = new Queue(\"orders.queue\", true, false, false, args);",
+    "tags": [
+      "RabbitMQ",
+      "DLX",
+      "Error Handling"
+    ],
+    "tips": "DLX is critical for production fault-tolerance. Explain how it prevents infinite loops where a broken payload is continuously retried and rejected.",
+    "id": 143
+  },
+  {
+    "category": "rest_microservices",
+    "difficulty": "Hard",
+    "question": "How do you achieve message durability and delivery guarantee in RabbitMQ?",
+    "answer": "To ensure messages survive broker restarts and are guaranteed to deliver: 1. Declare queues and exchanges as durable (durable=true). 2. Publish messages with persistent delivery mode (deliveryMode=2). 3. Use manual consumer acknowledgments (ACKs) instead of auto-ack.",
+    "explanation": "Durable queues store structural metadata on disk. Persistent messages store payloads on disk. Manual ACKs ensure the broker only deletes messages after the consumer has successfully completed processing.",
+    "example": "rabbitTemplate.convertAndSend(exchange, key, message, msg -> {\n  msg.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);\n  return msg;\n});",
+    "tags": [
+      "RabbitMQ",
+      "Durability",
+      "Reliability"
+    ],
+    "tips": "For 100% delivery guarantees, mention publisher confirms (broker sends ACK to publisher once written to disk) and consumer prefetch tuning.",
+    "id": 144
+  },
+  {
+    "category": "rest_microservices",
+    "difficulty": "Medium",
+    "question": "What is the Prefetch Count (QoS) in RabbitMQ, and why is it important?",
+    "answer": "Prefetch Count (Quality of Service) specifies the maximum number of unacknowledged messages RabbitMQ can send to a single consumer instance. It prevents overloading one consumer while other consumers in a round-robin pool remain idle.",
+    "explanation": "By default, RabbitMQ sends messages in round-robin fashion without verifying how long consumers take. Setting prefetch to a small limit (e.g. 1 or 5) ensures messages are only dispatched as consumers complete their active tasks.",
+    "example": "spring.rabbitmq.listener.simple.prefetch=1 // Sets consumer prefetch limit",
+    "tags": [
+      "RabbitMQ",
+      "QoS",
+      "Load Balancing"
+    ],
+    "tips": "Explain that prefetch count is a vital configuration for handling messages with variable execution times.",
+    "id": 145
+  },
+  {
+    "category": "multithreading",
+    "difficulty": "Hard",
+    "question": "What are Virtual Threads in Java 21, and how do they differ from Platform Threads?",
+    "answer": "Virtual Threads are lightweight, user-mode threads managed by the JVM rather than mapping 1:1 to OS threads (Platform Threads). They enable applications to run millions of concurrent blocking operations without memory exhaustion.",
+    "explanation": "Platform Threads are expensive (allocate 1MB of stack space and require OS kernel context switches). Virtual Threads are cheap (allocate bytes on the JVM heap) and run on carrier OS threads. When blocking on I/O, JVM unmounts them.",
+    "example": "Thread.ofVirtual().start(() -> {\n  // Do blocking network call\n});",
+    "tags": [
+      "Concurrency",
+      "Virtual Threads",
+      "Java 21",
+      "Project Loom"
+    ],
+    "tips": "Mention that Virtual Threads solve the I/O scalability bottleneck without forcing developers to write complex, unreadable reactive code.",
+    "id": 146
+  },
+  {
+    "category": "multithreading",
+    "difficulty": "Hard",
+    "question": "Explain StampedLock in Java 8 and how optimistic reading improves performance.",
+    "answer": "StampedLock is an alternative lock supporting three lock modes: Write, Read, and Optimistic Read. Optimistic reading does not acquire a lock. Instead, it retrieves a numeric stamp, reads data, and validates the stamp to verify if a write occurred.",
+    "explanation": "If validate(stamp) returns true, the read was consistent. If false, a write thread intervened, and the reader falls back to acquire a traditional blocking read lock. This maximizes read throughput under high concurrency.",
+    "example": "long stamp = lock.tryOptimisticRead();\nint curX = x;\nif (!lock.validate(stamp)) {\n  stamp = lock.readLock();\n  try { curX = x; } finally { lock.unlockRead(stamp); }\n}",
+    "tags": [
+      "Locks",
+      "StampedLock",
+      "Concurrency",
+      "Java 8"
+    ],
+    "tips": "Note that StampedLock is not reentrant, meaning a thread cannot re-acquire the lock without causing a deadlock.",
+    "id": 147
+  },
+  {
+    "category": "multithreading",
+    "difficulty": "Hard",
+    "question": "What is the ForkJoinPool in Java, and how does its work-stealing algorithm function?",
+    "answer": "ForkJoinPool is an ExecutorService designed to execute recursive divide-and-conquer tasks. Its work-stealing algorithm balance workloads: idle threads 'steal' tasks from the tail of busy threads' double-ended queues (deques).",
+    "explanation": "When executing a ForkJoinTask, subtasks are pushed onto the calling thread's deque. Worker threads process their own queue in LIFO order (helps cache locality), while other threads steal from the tail in FIFO order.",
+    "example": "ForkJoinPool pool = ForkJoinPool.commonPool();\npool.invoke(new RecursiveTaskSubclass());",
+    "tags": [
+      "Concurrency",
+      "ForkJoinPool",
+      "Work Stealing"
+    ],
+    "tips": "Parallel Streams in Java 8 automatically use the system-wide ForkJoinPool.commonPool().",
+    "id": 148
+  },
+  {
+    "category": "jvm_memory",
+    "difficulty": "Hard",
+    "question": "How does the ZGC (Z Garbage Collector) achieve sub-millisecond pause times?",
+    "answer": "ZGC achieves sub-millisecond GC pauses by executing all heavy memory operations (marking, relocation, and compaction) concurrently alongside application execution threads, using colored pointers and load barriers.",
+    "explanation": "ZGC uses reference metadata bits (colored pointers) and inserts load barriers when application threads access references. If an object has been moved, the load barrier self-heals the reference dynamically in runtime.",
+    "example": "JVM Argument: -XX:+UseZGC",
+    "tags": [
+      "Garbage Collection",
+      "ZGC",
+      "Low Latency"
+    ],
+    "tips": "Mention that ZGC pause times are independent of heap size, making it suitable for multi-terabyte heaps.",
+    "id": 149
+  },
+  {
+    "category": "jvm_memory",
+    "difficulty": "Hard",
+    "question": "What are the common causes of memory leaks in Java, and how do you diagnose them?",
+    "answer": "Common causes: 1. Static references holding onto objects. 2. Unclosed resource streams (files, database connections). 3. ThreadLocal variables not removed. Diagnostics are performed by analyzing Heap Dumps (.hprof) using Eclipse MAT.",
+    "explanation": "A memory leak exists when unused objects remain reachable from GC Roots (static classes, local variables in running threads). Analysis tools show the dominator tree paths to root leaks.",
+    "example": "public static final List<Data> cache = new ArrayList<>(); // Potential leak if not cleaned!",
+    "tags": [
+      "Memory Leaks",
+      "Diagnostics",
+      "MAT",
+      "GC Roots"
+    ],
+    "tips": "Mention VisualVM for live tracking and Eclipse MAT for analyzing dominator trees and leak suspects.",
+    "id": 150
   }
 ]
