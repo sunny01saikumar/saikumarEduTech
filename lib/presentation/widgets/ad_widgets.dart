@@ -9,10 +9,10 @@ class AdService {
   static RewardedAd? _rewardedAd;
 
   // Real AdMob Test IDs (or replacement constants)
-  static const String bannerUnitId = 'ca-app-pub-3940256099942544/6300978111';
-  static const String interstitialUnitId = 'ca-app-pub-3940256099942544/1033173712';
-  static const String rewardedUnitId = 'ca-app-pub-3940256099942544/5224354917';
-  static const String nativeUnitId = 'ca-app-pub-3940256099942544/2247696110';
+  static const String bannerUnitId = 'ca-app-pub-1653508375826617/7284927759';
+  static const String interstitialUnitId = 'ca-app-pub-1653508375826617/2522987444';
+  static const String rewardedUnitId = 'ca-app-pub-1653508375826617/5943925928';
+  static const String nativeUnitId = 'ca-app-pub-1653508375826617/6897346720';
 
   static Future<void> initialize() async {
     if (kIsWeb) return;
